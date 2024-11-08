@@ -4,6 +4,9 @@
   "description": "Melvin's Personal Site",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": "^22.11.0"
+  },
   "scripts": {
     "build": "vuepress build site",
     "dev": "vuepress dev site",
