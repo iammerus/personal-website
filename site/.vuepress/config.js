@@ -35,8 +35,12 @@ export default defineUserConfig({
     repo: 'iammerus',
   }),
   plugins: [
-    seoPlugin({}),
-    sitemapPlugin({})
+    seoPlugin({
+      hostname: 'mups.co.zw'
+    }),
+    sitemapPlugin({
+      hostname: 'mups.co.zw'
+    })
   ],
   bundler: viteBundler(),
   extraCss: [
