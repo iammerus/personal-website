@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "vuepress build docs",
+    "build": "vuepress build site",
     "dev": "vuepress dev site",
     "update-package": "pnpm dlx vp-update"
   },
