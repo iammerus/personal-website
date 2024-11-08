@@ -35,8 +35,8 @@ export default defineUserConfig({
     repo: 'iammerus',
   }),
   plugins: [
-    seoPlugin(),
-    sitemapPlugin()
+    seoPlugin({}),
+    sitemapPlugin({})
   ],
   bundler: viteBundler(),
   extraCss: [
