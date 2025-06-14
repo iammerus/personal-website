@@ -134,13 +134,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import ScrollTriggerPlugin from 'gsap/ScrollTrigger'
 import { useScrollAnimation } from '../../composables/useScrollAnimation'
 import ProjectCard from './ProjectCard.vue'
 import InteractiveButton from './InteractiveButton.vue'
 import ProjectModal from './ProjectModal.vue'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTriggerPlugin)
 
 interface Project {
   id: string

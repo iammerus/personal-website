@@ -146,10 +146,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useScrollAnimation } from '@/composables/useScrollAnimation'
+import ScrollTriggerPlugin from 'gsap/ScrollTrigger'
+import { useScrollAnimation } from '../../composables/useScrollAnimation'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTriggerPlugin)
 
 const skillsRef = ref<HTMLElement>()
 const titleRef = ref<HTMLElement>()
@@ -308,7 +308,7 @@ onMounted(() => {
   )
 
   // Progress bars animation
-  ScrollTrigger.batch(progressBars.value, {
+  ScrollTriggerPlugin.batch(progressBars.value, {
     onEnter: (elements) => {
       elements.forEach((el) => {
         gsap.fromTo(el,
