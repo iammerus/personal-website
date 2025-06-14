@@ -34,3 +34,5 @@ package-lock.json
 
 # copilot instructions
 .github/copilot-instructions.md
+data/*
+data/

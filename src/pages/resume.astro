@@ -1,0 +1,163 @@
+---
+import DefaultLayout from '@layouts/DefaultLayout.astro'
+import { parseResumeMarkdown, groupSkillsByCategory } from '@utils/resumeParser'
+import fs from 'fs'
+import path from 'path'
+
+// Read and parse resume data
+const resumePath = path.join(process.cwd(), 'RESUME.md')
+const resumeContent = fs.readFileSync(resumePath, 'utf-8')
+const resumeData = parseResumeMarkdown(resumeContent)
+const skillGroups = groupSkillsByCategory(resumeData.skills)
+---
+
+<DefaultLayout title="Resume - Melvin Mupondori" description="Professional resume of Melvin Mupondori, Senior Full-Stack Engineer with 5+ years of experience.">
+  <section class="py-20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
+    <div class="container mx-auto px-4">
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
+          {resumeData.contact.name}
+        </h1>
+        <p class="text-xl md:text-2xl text-blue-600 dark:text-blue-400 font-semibold mb-6">
+          {resumeData.contact.title}
+        </p>
+        <div class="flex flex-wrap justify-center gap-6 text-gray-600 dark:text-gray-300">
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {resumeData.contact.location}
+          </span>
+          <a href={`mailto:${resumeData.contact.email}`} class="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            {resumeData.contact.email}
+          </a>
+          <a href={resumeData.contact.github} target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+      
+      <!-- Download Resume Button -->
+      <div class="text-center mb-16">
+        <a
+          href="/resume.pdf"
+          download
+          class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Download PDF Resume
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Profile Summary -->
+  <section class="py-16 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Professional Summary</h2>
+      <div class="max-w-4xl mx-auto">
+        <p class="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+          {resumeData.profile}
+        </p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Experience -->
+  <section class="py-16 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-12 text-center">Professional Experience</h2>
+      <div class="max-w-4xl mx-auto space-y-12">
+        {resumeData.experience.map((exp) => (
+          <div class="bg-white dark:bg-gray-900 rounded-lg p-8 shadow-lg">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">{exp.role}</h3>
+                <p class="text-lg text-blue-600 dark:text-blue-400 font-semibold">{exp.company}</p>
+                {exp.location && <p class="text-gray-600 dark:text-gray-400">{exp.location}</p>}
+              </div>
+              <div class="mt-2 md:mt-0">
+                <span class="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                  {exp.period}
+                </span>
+              </div>
+            </div>
+            
+            {exp.description && (
+              <p class="text-gray-700 dark:text-gray-300 mb-4">{exp.description}</p>
+            )}
+            
+            {exp.achievements.length > 0 && (
+              <div class="mb-6">
+                <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Key Achievements:</h4>
+                <ul class="space-y-2">
+                  {exp.achievements.map((achievement) => (
+                    <li class="flex items-start">
+                      <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                      </svg>
+                      <span class="text-gray-700 dark:text-gray-300">{achievement}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {exp.technologies.length > 0 && (
+              <div>
+                <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Technologies Used:</h4>
+                <div class="flex flex-wrap gap-2">
+                  {exp.technologies.map((tech) => (
+                    <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-full">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+  
+  <!-- Skills -->
+  <section class="py-16 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-12 text-center">Technical Skills</h2>
+      <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {Object.entries(skillGroups).map(([category, skills]) => (
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{category}</h3>
+            <div class="space-y-3">
+              {skills.map((skill) => (
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">{skill.name}</span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{skill.level}%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      class="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full"
+                      style={`width: ${skill.level}%`}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</DefaultLayout>

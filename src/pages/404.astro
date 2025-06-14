@@ -2,16 +2,27 @@
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 ---
 
-<DefaultLayout title="404">
+<DefaultLayout title="404 - Page Not Found">
   <section class="my-12">
-    <div class="container">
-      <h1>404</h1>
-    </div>
-  </section>
-  <section class="my-12">
-    <div class="space-content container">
-      <p class="text-2xl">This page does not exist. Don't worry though, we got you.</p>
-      <a class="button" href="/">Let's get you home Astronout 🚀</a>
+    <div class="container text-center">
+      <div class="max-w-2xl mx-auto">
+        <div class="text-8xl font-bold text-blue-600 dark:text-blue-400 mb-4">404</div>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-6">Page Not Found</h1>
+        <p class="text-xl text-gray-600 dark:text-gray-300 mb-8">
+          The page you're looking for doesn't exist. Let's get you back on track.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a class="button" href="/">
+            🏠 Go Home
+          </a>
+          <a class="button color-secondary" href="/portfolio">
+            📁 View Portfolio
+          </a>
+          <a class="button color-secondary" href="/contact">
+            📧 Contact Me
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 </DefaultLayout>

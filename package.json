@@ -1,11 +1,11 @@
 {
-  "name": "accessible-astro-starter",
-  "description": "An Accessible Starter Theme for Astro including several accessibility features and tools to help you build faster.",
-  "version": "4.1.0",
-  "author": "Incluud",
+  "name": "personal-website",
+  "description": "Personal website and portfolio of Melvin Mupondori - Senior Full-Stack Engineer",
+  "version": "1.0.0",
+  "author": "Melvin Mupondori",
   "license": "MIT",
   "type": "module",
-  "homepage": "https://accessible-astro.netlify.app/",
+  "homepage": "https://mups.co.zw/",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -26,13 +26,6 @@
     "blog",
     "portfolio"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/incluud/accessible-astro-starter.git"
-  },
-  "bugs": {
-    "url": "https://github.com/incluud/accessible-astro-starter/issues"
-  },
   "devDependencies": {
     "@astrojs/mdx": "^4.3.0",
     "@astrojs/partytown": "^2.1.4",
@@ -59,8 +52,15 @@
     "tailwindcss": "^4.1.7"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.4.1",
+    "@astrojs/vue": "^5.1.0",
     "@tailwindcss/vite": "^4.1.7",
-    "accessible-astro-components": "^4.1.1"
+    "@vueuse/core": "^13.3.0",
+    "@vueuse/motion": "^3.0.3",
+    "accessible-astro-components": "^4.1.1",
+    "gsap": "^3.13.0",
+    "vue": "^3.5.16",
+    "vue-router": "^4.5.1"
   },
   "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }
