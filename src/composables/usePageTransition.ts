@@ -1,20 +1,32 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMediaQuery } from '@vueuse/core'
-import { gsap } from 'gsap'
+
+let gsap: any
+
+const initGSAP = async () => {
+  if (typeof window !== 'undefined' && !gsap) {
+    const { gsap: gsapImport } = await import('gsap')
+    gsap = gsapImport
+  }
+  return gsap
+}
 
 export function usePageTransition() {
   const isTransitioning = ref(false)
   const transitionElement = ref<HTMLElement>()
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   
-  const fadeIn = (element: HTMLElement, duration = 0.6) => {
+  const fadeIn = async (element: HTMLElement, duration = 0.6) => {
+    const gsapInstance = await initGSAP()
+    if (!gsapInstance) return Promise.resolve()
+    
     if (prefersReducedMotion.value) {
-      gsap.set(element, { opacity: 1 })
+      gsapInstance.set(element, { opacity: 1 })
       return Promise.resolve()
     }
     
-    return gsap.fromTo(
+    return gsapInstance.fromTo(
       element,
       { opacity: 0, y: 20 },
       { 
@@ -26,13 +38,16 @@ export function usePageTransition() {
     ).then()
   }
   
-  const fadeOut = (element: HTMLElement, duration = 0.3) => {
+  const fadeOut = async (element: HTMLElement, duration = 0.3) => {
+    const gsapInstance = await initGSAP()
+    if (!gsapInstance) return Promise.resolve()
+    
     if (prefersReducedMotion.value) {
-      gsap.set(element, { opacity: 0 })
+      gsapInstance.set(element, { opacity: 0 })
       return Promise.resolve()
     }
     
-    return gsap.to(element, {
+    return gsapInstance.to(element, {
       opacity: 0,
       y: -20,
       duration,
@@ -40,9 +55,12 @@ export function usePageTransition() {
     }).then()
   }
   
-  const slideIn = (element: HTMLElement, direction: 'left' | 'right' | 'up' | 'down' = 'up') => {
+  const slideIn = async (element: HTMLElement, direction: 'left' | 'right' | 'up' | 'down' = 'up') => {
+    const gsapInstance = await initGSAP()
+    if (!gsapInstance) return Promise.resolve()
+    
     if (prefersReducedMotion.value) {
-      gsap.set(element, { opacity: 1, x: 0, y: 0 })
+      gsapInstance.set(element, { opacity: 1, x: 0, y: 0 })
       return Promise.resolve()
     }
     
@@ -68,16 +86,19 @@ export function usePageTransition() {
         break
     }
     
-    return gsap.fromTo(element, startProps, endProps).then()
+    return gsapInstance.fromTo(element, startProps, endProps).then()
   }
   
-  const staggerIn = (elements: HTMLElement[], delay = 0.1) => {
+  const staggerIn = async (elements: HTMLElement[], delay = 0.1) => {
+    const gsapInstance = await initGSAP()
+    if (!gsapInstance) return Promise.resolve()
+    
     if (prefersReducedMotion.value) {
-      gsap.set(elements, { opacity: 1, y: 0 })
+      gsapInstance.set(elements, { opacity: 1, y: 0 })
       return Promise.resolve()
     }
     
-    return gsap.fromTo(
+    return gsapInstance.fromTo(
       elements,
       { opacity: 0, y: 30 },
       {

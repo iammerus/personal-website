@@ -133,14 +133,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { gsap } from 'gsap'
-import ScrollTriggerPlugin from 'gsap/ScrollTrigger'
 import { useScrollAnimation } from '../../composables/useScrollAnimation'
 import ProjectCard from './ProjectCard.vue'
 import InteractiveButton from './InteractiveButton.vue'
 import ProjectModal from './ProjectModal.vue'
 
-gsap.registerPlugin(ScrollTriggerPlugin)
+let gsap: any
+let ScrollTriggerPlugin: any
 
 interface Project {
   id: string
@@ -272,8 +271,8 @@ const setActiveFilter = (filter: string) => {
   activeFilter.value = filter
   visibleCount.value = 6 // Reset visible count when changing filter
   
-  // Animate grid change
-  if (shouldAnimate.value) {
+  // Animate grid change if GSAP is available
+  if (gsap && shouldAnimate.value) {
     gsap.fromTo(gridRef.value?.children || [],
       { opacity: 0, y: 20 },
       { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 }
@@ -298,8 +297,8 @@ const loadMore = async () => {
   visibleCount.value += 6
   loadingMore.value = false
   
-  // Animate new items
-  if (shouldAnimate.value) {
+  // Animate new items if GSAP is available
+  if (gsap && shouldAnimate.value) {
     const newItems = Array.from(gridRef.value?.children || []).slice(-6)
     gsap.fromTo(newItems,
       { opacity: 0, y: 50 },
@@ -308,9 +307,27 @@ const loadMore = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Initialize projects data
   initializeProjects()
+  
+  // Dynamically import GSAP only on client-side
+  if (typeof window !== 'undefined') {
+    const { gsap: gsapImport } = await import('gsap')
+    const { default: ScrollTrigger } = await import('gsap/ScrollTrigger')
+    
+    gsap = gsapImport
+    ScrollTriggerPlugin = ScrollTrigger
+    gsap.registerPlugin(ScrollTriggerPlugin)
+    
+    setupAnimations()
+  }
+})
+
+const setupAnimations = () => {
+  if (!gsap || !ScrollTriggerPlugin) return
+  
+  const { shouldAnimate } = useScrollAnimation()
   
   if (!shouldAnimate.value) {
     gsap.set([titleRef.value, subtitleRef.value, filtersRef.value, loadMoreRef.value], { opacity: 1 })
@@ -383,5 +400,5 @@ onMounted(() => {
       }
     )
   }
-})
+}
 </script>

@@ -75,9 +75,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { gsap } from 'gsap'
 import { useTheme } from '@/composables/useTheme'
 import { useScrollAnimation } from '@/composables/useScrollAnimation'
+
+let gsap: any
 
 interface Ripple {
   id: number
@@ -99,10 +100,10 @@ const ariaLabel = computed(() =>
   isDark.value ? 'Switch to light mode' : 'Switch to dark mode'
 )
 
-const toggleTheme = (event: MouseEvent) => {
+const toggleTheme = async (event: MouseEvent) => {
   createRipple(event)
   
-  if (shouldAnimate.value && buttonRef.value) {
+  if (gsap && shouldAnimate.value && buttonRef.value) {
     // Add a small bounce animation
     gsap.to(buttonRef.value, {
       scale: 0.95,
@@ -134,37 +135,45 @@ const createRipple = (event: MouseEvent) => {
   ripples.value.push(newRipple)
   
   // Animate ripple
-  gsap.to(newRipple, {
-    scale: 10,
-    opacity: 0,
-    duration: 0.4,
-    ease: 'power2.out',
-    onComplete: () => {
-      ripples.value = ripples.value.filter(r => r.id !== newRipple.id)
-    }
-  })
+  if (gsap) {
+    gsap.to(newRipple, {
+      scale: 10,
+      opacity: 0,
+      duration: 0.4,
+      ease: 'power2.out',
+      onComplete: () => {
+        ripples.value = ripples.value.filter(r => r.id !== newRipple.id)
+      }
+    })
+  }
 }
 
-onMounted(() => {
-  if (shouldAnimate.value && buttonRef.value) {
-    // Initial hover animations
-    const button = buttonRef.value
+onMounted(async () => {
+  // Dynamically import GSAP only on client-side
+  if (typeof window !== 'undefined') {
+    const { gsap: gsapImport } = await import('gsap')
+    gsap = gsapImport
     
-    button.addEventListener('mouseenter', () => {
-      gsap.to(button, {
-        scale: 1.05,
-        duration: 0.2,
-        ease: 'power2.out'
+    if (shouldAnimate.value && buttonRef.value) {
+      // Initial hover animations
+      const button = buttonRef.value
+      
+      button.addEventListener('mouseenter', () => {
+        gsap.to(button, {
+          scale: 1.05,
+          duration: 0.2,
+          ease: 'power2.out'
+        })
       })
-    })
-    
-    button.addEventListener('mouseleave', () => {
-      gsap.to(button, {
-        scale: 1,
-        duration: 0.2,
-        ease: 'power2.out'
+      
+      button.addEventListener('mouseleave', () => {
+        gsap.to(button, {
+          scale: 1,
+          duration: 0.2,
+          ease: 'power2.out'
+        })
       })
-    })
+    }
   }
 })
 </script>

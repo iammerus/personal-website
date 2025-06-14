@@ -145,11 +145,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { gsap } from 'gsap'
-import ScrollTriggerPlugin from 'gsap/ScrollTrigger'
 import { useScrollAnimation } from '../../composables/useScrollAnimation'
 
-gsap.registerPlugin(ScrollTriggerPlugin)
+let gsap: any
+let ScrollTriggerPlugin: any
 
 const skillsRef = ref<HTMLElement>()
 const titleRef = ref<HTMLElement>()
@@ -226,7 +225,7 @@ const experiences = [
 ]
 
 const onCategoryHover = (index: number) => {
-  if (!shouldAnimate.value) return
+  if (!gsap || !shouldAnimate.value) return
   
   const category = categoryRefs.value[index]
   if (category) {
@@ -240,7 +239,7 @@ const onCategoryHover = (index: number) => {
 }
 
 const onCategoryLeave = (index: number) => {
-  if (!shouldAnimate.value) return
+  if (!gsap || !shouldAnimate.value) return
   
   const category = categoryRefs.value[index]
   if (category) {
@@ -253,7 +252,25 @@ const onCategoryLeave = (index: number) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // Dynamically import GSAP only on client-side
+  if (typeof window !== 'undefined') {
+    const { gsap: gsapImport } = await import('gsap')
+    const { default: ScrollTrigger } = await import('gsap/ScrollTrigger')
+    
+    gsap = gsapImport
+    ScrollTriggerPlugin = ScrollTrigger
+    gsap.registerPlugin(ScrollTriggerPlugin)
+    
+    setupAnimations()
+  }
+})
+
+const setupAnimations = () => {
+  if (!gsap || !ScrollTriggerPlugin) return
+  
+  const { shouldAnimate } = useScrollAnimation()
+
   if (!shouldAnimate.value) {
     // Show all elements immediately if animations are disabled
     gsap.set([titleRef.value, subtitleRef.value, ...categoryRefs.value, timelineTitle.value, ...experienceRefs.value], { opacity: 1 })
@@ -317,8 +334,8 @@ onMounted(() => {
 
   // Progress bars animation
   ScrollTriggerPlugin.batch(progressBars.value, {
-    onEnter: (elements) => {
-      elements.forEach((el) => {
+    onEnter: (elements: any[]) => {
+      elements.forEach((el: any) => {
         gsap.fromTo(el,
           { width: '0%' },
           {
@@ -368,7 +385,7 @@ onMounted(() => {
 
   // Experience items stagger animation
   gsap.fromTo(experienceRefs.value,
-    { opacity: 0, x: (i) => i % 2 === 0 ? -100 : 100 },
+    { opacity: 0, x: (i: number) => i % 2 === 0 ? -100 : 100 },
     {
       opacity: 1,
       x: 0,
@@ -381,5 +398,5 @@ onMounted(() => {
       }
     }
   )
-})
+}
 </script>

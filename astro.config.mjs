@@ -22,6 +22,12 @@ export default defineConfig({
       },
     },
     plugins: [tailwindcss()],
+    ssr: {
+      noExternal: ['gsap']
+    },
+    optimizeDeps: {
+      include: ['gsap', 'gsap/ScrollTrigger']
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
