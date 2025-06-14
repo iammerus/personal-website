@@ -257,38 +257,46 @@ onMounted(() => {
   if (!shouldAnimate.value) {
     // Show all elements immediately if animations are disabled
     gsap.set([titleRef.value, subtitleRef.value, ...categoryRefs.value, timelineTitle.value, ...experienceRefs.value], { opacity: 1 })
-    gsap.set(progressBars.value, { width: (el) => el.dataset.level + '%' })
+    progressBars.value.forEach((el) => {
+      if (el && 'dataset' in el) {
+        gsap.set(el, { width: el.dataset.level + '%' })
+      }
+    })
     return
   }
 
   // Title animations
-  gsap.fromTo(titleRef.value,
-    { opacity: 0, y: 50 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: titleRef.value,
-        start: 'top 80%'
+  if (titleRef.value) {
+    gsap.fromTo(titleRef.value,
+      { opacity: 0, y: 50 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: titleRef.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 
-  gsap.fromTo(subtitleRef.value,
-    { opacity: 0, y: 30 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: subtitleRef.value,
-        start: 'top 80%'
+  if (subtitleRef.value) {
+    gsap.fromTo(subtitleRef.value,
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: subtitleRef.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 
   // Skills categories stagger animation
   gsap.fromTo(categoryRefs.value,
@@ -314,7 +322,7 @@ onMounted(() => {
         gsap.fromTo(el,
           { width: '0%' },
           {
-            width: el.dataset.level + '%',
+            width: (el as HTMLElement).dataset.level + '%',
             duration: 1.5,
             ease: 'power2.out',
             delay: 0.5
@@ -326,33 +334,37 @@ onMounted(() => {
   })
 
   // Timeline animations
-  gsap.fromTo(timelineTitle.value,
-    { opacity: 0, y: 30 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: timelineTitle.value,
-        start: 'top 80%'
+  if (timelineTitle.value) {
+    gsap.fromTo(timelineTitle.value,
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: timelineTitle.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 
   // Animate timeline line
-  gsap.fromTo(timelineLine.value,
-    { height: 0 },
-    {
-      height: '100%',
-      duration: 2,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: timelineLine.value,
-        start: 'top 80%'
+  if (timelineLine.value) {
+    gsap.fromTo(timelineLine.value,
+      { height: 0 },
+      {
+        height: '100%',
+        duration: 2,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: timelineLine.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 
   // Experience items stagger animation
   gsap.fromTo(experienceRefs.value,
