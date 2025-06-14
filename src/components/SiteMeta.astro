@@ -39,6 +39,10 @@ let subtitle = 'Senior Full-Stack Engineer'
 <meta name="description" content={description} />
 <meta name="author" content={author} />
 
+<!-- Resource hints -->
+<link rel="dns-prefetch" href="//fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
 <!-- open graph -->
 <meta property="og:title" content={`${title} - ${subtitle}`} />
 <meta property="og:description" content={description} />
@@ -50,5 +54,33 @@ let subtitle = 'Senior Full-Stack Engineer'
 
 <!-- page title -->
 <title>{title} - {subtitle}</title>
+
+<!-- Fix Cloudflare Rocket Loader CORS preload issue -->
+<script is:inline>
+  // Fix preload links that don't have crossorigin attributes
+  document.addEventListener('DOMContentLoaded', function() {
+    const preloadLinks = document.querySelectorAll('link[rel="preload"][as="script"]');
+    preloadLinks.forEach(link => {
+      if (!link.hasAttribute('crossorigin')) {
+        link.setAttribute('crossorigin', 'anonymous');
+      }
+    });
+  });
+  
+  // Also fix any preload links added by Cloudflare Rocket Loader
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1 && node.tagName === 'LINK' && 
+            node.rel === 'preload' && node.as === 'script' && 
+            !node.hasAttribute('crossorigin')) {
+          node.setAttribute('crossorigin', 'anonymous');
+        }
+      });
+    });
+  });
+  
+  observer.observe(document.head, { childList: true });
+</script>
 
 <ViewTransitions />

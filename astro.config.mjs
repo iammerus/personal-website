@@ -11,6 +11,9 @@ export default defineConfig({
   compressHTML: true,
   site: 'https://melvinmupondori.dev',
   integrations: [mdx(), vue(), icon(), compress()],
+  build: {
+    assets: '_astro'
+  },
   vite: {
     css: {
       preprocessorOptions: {
@@ -27,6 +30,16 @@ export default defineConfig({
     },
     optimizeDeps: {
       include: ['gsap', 'gsap/ScrollTrigger']
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          // Ensure consistent asset naming for preloading
+          assetFileNames: 'assets/[name]-[hash][extname]',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js'
+        }
+      }
     },
     resolve: {
       alias: {
