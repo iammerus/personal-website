@@ -92,7 +92,7 @@
         </ProjectCard>
       </div>
       
-      <!-- Load more button -->
+      <!-- Load more button or View All Projects -->
       <div
         v-if="hasMoreProjects"
         ref="loadMoreRef"
@@ -106,6 +106,19 @@
         >
           Load More Projects
         </InteractiveButton>
+      </div>
+      
+      <!-- View All Projects link -->
+      <div class="text-center mt-8">
+        <a
+          href="/portfolio"
+          class="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-300"
+        >
+          View All Projects
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
       </div>
     </div>
     
@@ -122,7 +135,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useScrollAnimation } from '@/composables/useScrollAnimation'
+import { useScrollAnimation } from '../../composables/useScrollAnimation'
 import ProjectCard from './ProjectCard.vue'
 import InteractiveButton from './InteractiveButton.vue'
 import ProjectModal from './ProjectModal.vue'
@@ -158,131 +171,99 @@ const visibleCount = ref(6)
 
 const { shouldAnimate } = useScrollAnimation()
 
-const filters = ['All', 'Web Apps', 'E-commerce', 'SaaS', 'Mobile']
+const filters = ['All', 'Web Apps', 'SaaS', 'Healthcare', 'E-sports']
 
-const projects: Project[] = [
+// Import projects data directly
+import projectsData from '../../../data/projects.json'
+
+// Fallback projects if JSON fails to load
+const fallbackProjects: Project[] = [
   {
     id: '1',
     title: 'Healthcare Management Platform',
     description: 'Enterprise-grade intranet application managing complete patient journey including scheduling and billing.',
-    longDescription: 'Architected and led frontend development of an enterprise-grade intranet application managing the complete patient journey including scheduling, insurance verification, and billing systems using React and shadcn/ui.',
+    longDescription: 'Architected and led frontend development of an enterprise-grade intranet application managing the complete patient journey including scheduling, insurance verification, and billing systems.',
     image: '/projects/project-image-1.png',
     category: 'Web Apps',
-    technologies: ['React', 'shadcn/ui', 'Redux', 'Node.js', 'Laravel', 'AWS RDS'],
+    technologies: ['React', 'Node.js', 'AWS'],
     liveUrl: '#',
     githubUrl: '#',
-    challenges: [
-      'Managing complex state across multiple interconnected modules',
-      'Handling large datasets with optimal performance',
-      'Integrating with legacy healthcare systems'
-    ],
-    solutions: [
-      'Implemented Redux with normalized state structure',
-      'Used virtual scrolling and pagination',
-      'Built robust API abstraction layer'
-    ],
-    features: [
-      'Patient scheduling system',
-      'Insurance verification workflow',
-      'Real-time billing updates',
-      'Role-based access control'
-    ]
-  },
-  {
-    id: '2',
-    title: 'Dealership Management System',
-    description: 'Multi-industry platform for powersports, marine, and RV dealerships with advanced search capabilities.',
-    longDescription: 'Developed a responsive dealership management system using Vue.js and NaiveUI that integrated with diverse legacy Dealer Management Systems across powersports, marine, and RV industries.',
-    image: '/projects/project-image-2.png',
-    category: 'Web Apps',
-    technologies: ['Vue.js', 'NaiveUI', 'Laravel', 'Elasticsearch', 'Redis'],
-    liveUrl: '#',
-    githubUrl: '#',
-    challenges: [
-      'Integrating with multiple legacy systems',
-      'Optimizing search performance across large datasets',
-      'Normalizing disparate data formats'
-    ],
-    solutions: [
-      'Built modular integration framework',
-      'Optimized Elasticsearch configuration',
-      'Created data transformation pipelines'
-    ],
-    features: [
-      'Inventory management',
-      'Advanced search and filtering',
-      'Multi-dealer support',
-      'Real-time data synchronization'
-    ]
-  },
-  {
-    id: '3',
-    title: 'F1 Esports Platform',
-    description: 'Real-time tournament system handling 100K+ concurrent users for Formula 1 esports competitions.',
-    longDescription: 'Developed key components for the F1 Esports platform using Vue 3, Nuxt, and NaiveUI, including dynamic results ingestion, real-time standings updates, and comprehensive race control admin dashboards.',
-    image: '/projects/project-image-3.png',
-    category: 'SaaS',
-    technologies: ['Vue 3', 'Nuxt', 'WebSocket', 'Redis', 'PHP'],
-    liveUrl: '#',
-    githubUrl: '#',
-    challenges: [
-      'Handling 100K+ concurrent users',
-      'Real-time data synchronization',
-      'Complex tournament bracket generation'
-    ],
-    solutions: [
-      'Implemented WebSocket with Redis Pub/Sub',
-      'Used efficient state management',
-      'Built scalable bracket algorithms'
-    ],
-    features: [
-      'Real-time race tracking',
-      'Tournament bracket management',
-      'Live standings updates',
-      'Admin race control dashboard'
-    ]
-  },
-  {
-    id: '4',
-    title: 'E-commerce Analytics Dashboard',
-    description: 'Comprehensive analytics platform for e-commerce businesses with real-time reporting.',
-    longDescription: 'Built a comprehensive analytics dashboard that provides real-time insights into e-commerce performance, customer behavior, and sales trends.',
-    image: '/projects/project-image-4.png',
-    category: 'E-commerce',
-    technologies: ['React', 'TypeScript', 'Chart.js', 'Node.js', 'PostgreSQL'],
-    liveUrl: '#',
-    githubUrl: '#',
-    challenges: [
-      'Processing large amounts of real-time data',
-      'Creating intuitive data visualizations',
-      'Ensuring data accuracy and consistency'
-    ],
-    solutions: [
-      'Implemented efficient data aggregation',
-      'Used optimized charting libraries',
-      'Built comprehensive data validation'
-    ],
-    features: [
-      'Real-time sales monitoring',
-      'Customer behavior analytics',
-      'Inventory tracking',
-      'Performance reports'
-    ]
+    challenges: [],
+    solutions: [],
+    features: []
   }
 ]
 
+// Map project data with images
+const projectImageMap: Record<string, string> = {
+  'Integrated Clinical Practice Management System': '/assets/images/projects/community_dental_clinical.png',
+  'ePremier League Platform': '/assets/images/projects/epremier_league_logo.webp',
+  'Nyaradzo SIP': '/assets/images/projects/sahwira_internation_plan.png'
+}
+
+// Transform the JSON data to match our interface
+const transformProjectData = (jsonProjects: any[]): Project[] => {
+  return jsonProjects.map((project, index) => ({
+    id: project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    title: project.title,
+    description: project.description,
+    longDescription: project.problem + ' ' + project.contributions,
+    image: projectImageMap[project.title] || '/assets/images/projects/community_dental_clinical.png',
+    category: mapProjectCategory(project),
+    technologies: project.skills || [],
+    liveUrl: project.hasProjectLink ? '#' : undefined,
+    githubUrl: project.hasProjectLink ? '#' : undefined,
+    challenges: [project.problem],
+    solutions: [project.contributions],
+    features: project.metrics ? project.metrics.map((m: any) => `${m.value} ${m.description}`) : []
+  }))
+}
+
+// Map project data to appropriate categories
+const mapProjectCategory = (project: any): string => {
+  if (project.industry && Array.isArray(project.industry)) {
+    const industry = project.industry[0].toLowerCase()
+    if (industry.includes('gaming') || industry.includes('esports')) return 'E-sports'
+    if (industry.includes('healthcare') || industry.includes('clinical')) return 'Healthcare'
+    if (industry.includes('consulting')) return 'Web Apps'
+  }
+  
+  if (project.company) {
+    const company = project.company.toLowerCase()
+    if (company.includes('dental') || company.includes('healthcare')) return 'Healthcare'
+    if (company.includes('gfinity')) return 'E-sports'
+  }
+  
+  if (project.title) {
+    const title = project.title.toLowerCase()
+    if (title.includes('clinical') || title.includes('healthcare') || title.includes('dental')) return 'Healthcare'
+    if (title.includes('premier') || title.includes('league') || title.includes('gaming')) return 'E-sports'
+    if (title.includes('platform') || title.includes('system')) return 'SaaS'
+  }
+  
+  return 'Web Apps'
+}
+
+const projects = ref<Project[]>([])
+
+// Initialize projects data
+const initializeProjects = () => {
+  const projectsSource = Array.isArray(projectsData?.projects) ? projectsData.projects : []
+  projects.value = transformProjectData(projectsSource)
+}
+
 const filteredProjects = computed(() => {
   const filtered = activeFilter.value === 'All' 
-    ? projects 
-    : projects.filter(p => p.category === activeFilter.value)
+    ? projects.value 
+    : projects.value.filter(p => p.category === activeFilter.value)
   
   return filtered.slice(0, visibleCount.value)
 })
 
 const hasMoreProjects = computed(() => {
   const totalFiltered = activeFilter.value === 'All' 
-    ? projects.length 
-    : projects.filter(p => p.category === activeFilter.value).length
+    ? projects.value.length 
+    : projects.value.filter(p => p.category === activeFilter.value).length
   
   return visibleCount.value < totalFiltered
 })
@@ -328,68 +309,79 @@ const loadMore = async () => {
 }
 
 onMounted(() => {
+  // Initialize projects data
+  initializeProjects()
+  
   if (!shouldAnimate.value) {
     gsap.set([titleRef.value, subtitleRef.value, filtersRef.value, loadMoreRef.value], { opacity: 1 })
     return
   }
 
   // Title animations
-  gsap.fromTo(titleRef.value,
-    { opacity: 0, y: 50 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: titleRef.value,
-        start: 'top 80%'
+  if (titleRef.value) {
+    gsap.fromTo(titleRef.value,
+      { opacity: 0, y: 50 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: titleRef.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 
-  gsap.fromTo(subtitleRef.value,
-    { opacity: 0, y: 30 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: subtitleRef.value,
-        start: 'top 80%'
+  if (subtitleRef.value) {
+    gsap.fromTo(subtitleRef.value,
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: subtitleRef.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 
   // Filters animation
-  gsap.fromTo(filtersRef.value,
-    { opacity: 0, y: 20 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.6,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: filtersRef.value,
-        start: 'top 80%'
+  if (filtersRef.value) {
+    gsap.fromTo(filtersRef.value,
+      { opacity: 0, y: 20 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: filtersRef.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 
   // Load more button animation
-  gsap.fromTo(loadMoreRef.value,
-    { opacity: 0, y: 20 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.6,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: loadMoreRef.value,
-        start: 'top 80%'
+  if (loadMoreRef.value) {
+    gsap.fromTo(loadMoreRef.value,
+      { opacity: 0, y: 20 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: loadMoreRef.value,
+          start: 'top 80%'
+        }
       }
-    }
-  )
+    )
+  }
 })
 </script>

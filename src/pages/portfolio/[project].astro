@@ -2,73 +2,196 @@
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 import PageHeader from '@components/PageHeader.astro'
 import SocialShares from '@components/SocialShares.astro'
-import { getCollection, render } from 'astro:content'
-import type { CollectionEntry } from 'astro:content'
+
+// Import project data
+import projectsData from '../../../data/projects.json'
+
+// Define types for our project data
+interface ProjectMetric {
+  value: string
+  description: string
+}
+
+interface Project {
+  title: string
+  company: string
+  role: string
+  duration: string
+  skills: string[]
+  description: string
+  problem: string
+  contributions: string
+  outcomes: string
+  metrics?: ProjectMetric[]
+  hasProjectLink?: boolean
+}
 
 export async function getStaticPaths() {
-  const projects = await getCollection('projects')
+  // Map project data with images
+  const projectImageMap: Record<string, string> = {
+    'Integrated Clinical Practice Management System': '/assets/images/projects/community_dental_clinical.png',
+    'ePremier League Platform': '/assets/images/projects/epremier_league_logo.webp',
+    'Nyaradzo SIP': '/assets/images/projects/sahwira_internation_plan.png'
+  }
 
-  const projectImages = [
-    { src: '/projects/project-image-1.png' },
-    { src: '/projects/project-image-2.png' },
-    { src: '/projects/project-image-3.png' },
-    { src: '/projects/project-image-4.png' },
-    { src: '/projects/project-image-5.png' },
-    { src: '/projects/project-image-6.png' },
-  ]
+  const projects = projectsData.projects.map((project: Project, index: number) => ({
+    ...project,
+    id: project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    featuredImage: projectImageMap[project.title] || '/assets/images/projects/community_dental_clinical.png',
+    author: 'Melvin Mupondori'
+  }))
 
-  return projects.map((project, index) => {
-    const projectWithImage = {
-      ...project,
-      featuredImage: projectImages[index % projectImages.length].src,
-    }
-
-    return {
-      params: { project: project.id },
-      props: { project: projectWithImage },
-    }
-  })
+  return projects.map((project) => ({
+    params: { project: project.id },
+    props: { project },
+  }))
 }
 
 interface Props {
-  project: CollectionEntry<'projects'> & { featuredImage: string }
+  project: Project & { id: string; featuredImage: string; author: string }
 }
 
 const { project } = Astro.props
-const { Content } = await render(project)
 
 const author = {
-  name: project.data.author,
-  image: '/projects/project-image-1.png',
-  bio: 'Project Creator',
+  name: 'Melvin Mupondori',
+  image: '/assets/images/melvin-profile.jpg',
+  bio: 'Senior Software Engineer with 5+ years of experience building scalable web applications',
 }
 ---
 
-<DefaultLayout title={project.data.title} description={project.data.description} url={project.data.title}>
+<DefaultLayout title={project.title} description={project.description} url={project.title}>
   <PageHeader
-    title={project.data.title}
-    subtitle={project.data.description}
+    title={project.title}
+    subtitle={project.description}
     author={author}
+    publishDate={project.duration}
     bgType="bordered"
-    featuredImage={project.featuredImage}
   />
+  
   <section class="my-12">
-    <div class="narrow space-content container">
-      <Content />
-    </div>
-  </section>
-  <section class="my-12">
-    <div class="narrow space-content container">
-      <h2>Share this project</h2>
-      <p>Like this project? Share it with your network!</p>
-      <SocialShares />
+    <div class="container max-w-4xl">
+      <!-- Project Hero Image -->
+      <div class="mb-8">
+        <img 
+          src={project.featuredImage} 
+          alt={`${project.title} screenshot`}
+          class="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
+        />
+      </div>
+
+      <!-- Project Overview -->
+      <div class="prose prose-lg dark:prose-invert max-w-none mb-12">
+        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Company</h3>
+              <p class="text-gray-600 dark:text-gray-300">{project.company}</p>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Role</h3>
+              <p class="text-gray-600 dark:text-gray-300">{project.role}</p>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Duration</h3>
+              <p class="text-gray-600 dark:text-gray-300">{project.duration}</p>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Technologies</h3>
+              <div class="flex flex-wrap gap-2">
+                {project.skills.map((skill) => (
+                  <span class="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics Section -->
+        {project.metrics && project.metrics.length > 0 && (
+          <div class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">Key Results</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {project.metrics.map((metric) => (
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                    {metric.value}
+                  </div>
+                  <p class="text-gray-700 dark:text-gray-300">{metric.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Problem Section -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold mb-4">The Challenge</h2>
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{project.problem}</p>
+        </div>
+
+        <!-- Solution Section -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold mb-4">My Contributions</h2>
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{project.contributions}</p>
+        </div>
+
+        <!-- Outcomes Section -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold mb-4">Results & Impact</h2>
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{project.outcomes}</p>
+        </div>
+
+        <!-- Call to Action -->
+        {project.hasProjectLink && (
+          <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-lg mt-12">
+            <h3 class="text-xl font-semibold mb-2">Interested in Learning More?</h3>
+            <p class="mb-4">I'd be happy to discuss this project in more detail and share insights about the technical challenges and solutions.</p>
+            <a 
+              href="/contact" 
+              class="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            >
+              Get in Touch
+            </a>
+          </div>
+        )}
+      </div>
+
+      <!-- Social Shares -->
+      <div class="mt-12">
+        <SocialShares 
+          title={project.title}
+          description={project.description}
+          url={Astro.url.href}
+        />
+      </div>
     </div>
   </section>
 </DefaultLayout>
 
-<style lang="scss" is:global>
-  .narrow {
-    margin-inline: auto;
-    max-width: 65ch;
+<style>
+  .prose {
+    max-width: none;
+  }
+  
+  .prose h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  
+  .prose p {
+    margin-bottom: 1rem;
+    line-height: 1.625;
   }
 </style>

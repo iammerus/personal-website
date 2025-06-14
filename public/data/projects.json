@@ -1,0 +1,88 @@
+{
+  "projects": [
+    {
+      "title": "Integrated Clinical Practice Management System",
+      "company": "Community Dental Partners",
+      "role": "Senior Software Engineer",
+      "duration": "Nov 2022 - Present",
+      "experience": "I was involved from inception to launch (0 -> 1)",
+      "skills": [
+        "API Integration",
+        "AWS",
+        "AWS RDS",
+        "CI/CD",
+        "Docker",
+        "JavaScript",
+        "MySQL",
+        "Node.js",
+        "Playwright",
+        "RabbitMQ",
+        "React",
+        "TypeScript"
+      ],
+      "metrics": [
+        {
+          "value": "90%",
+          "description": "Faster insurance verification and claims processing"
+        },
+        {
+          "value": "77%",
+          "description": "Reduction in data entry errors for patient records and billing"
+        }
+      ],
+      "description": "Community Dental Partners needed an intranet solution to centralize clinical and administrative operations. As a Senior Software Engineer, I designed this system to streamline their dental care services.",
+      "problem": "Fragmented patient information, inefficient X-ray management, complex insurance verification, and manual doctor hour tracking caused administrative delays and impacted patient care.",
+      "contributions": "Designed backend services using Node.js for patient management, X-ray handling, insurance workflows, and call tracking. Developed React interfaces for data management and centralized data into a secure database with automated workflows.",
+      "outcomes": "The system transformed operations, improving productivity, data accuracy, and patient service quality while supporting superior dental care delivery."
+    },
+    {
+      "title": "ePremier League Platform",
+      "company": "Gfinity",
+      "industry": ["Gaming & e-Sports", "Entertainment"],
+      "role": "Software Engineer",
+      "duration": "Jul 2021 - Jul 2022",
+      "skills": [
+        "Nuxt",
+        "TypeScript",
+        "Vue.js",
+        "AWS",
+        "JavaScript"
+      ],
+      "description": "As a Senior Software Engineer at Gfinity, I developed the official ePremier League platform. This global esports competition brought EA SPORTS FC™ to thousands of players worldwide.",
+      "problem": "Build a scalable digital ecosystem for multi-stage tournaments managing player registrations, scheduling, real-time results, and competitive integrity globally.",
+      "contributions": "Led backend development using Zend for authentication, profiles, matchmaking, and results. Created UI with Vue.js and Naive UI, designed cloud infrastructure, and developed APIs for live event data integration.",
+      "outcomes": "The platform successfully supported complex tournament requirements during peak periods. Seamless broadcast integration elevated visibility and enhanced engagement for players and fans.",
+      "hasProjectLink": true
+    },
+    {
+      "title": "Nyaradzo SIP",
+      "company": "Webdev Zimbabwe",
+      "industry": "Consulting",
+      "role": "Full-stack Developer",
+      "duration": "Jan 2018 - Dec 2018",
+      "experience": "I was involved from inception to launch (0 -> 1)",
+      "skills": [
+        "API Integration",
+        "Google Cloud / GCP",
+        "JavaScript",
+        "Laravel",
+        "TypeScript",
+        "Vue.js"
+      ],
+      "metrics": [
+        {
+          "value": "17,367",
+          "description": "New policies created through the platform since its inception"
+        },
+        {
+          "value": "130,800",
+          "description": "Premium payments processed since the project went online"
+        }
+      ],
+      "description": "Nyaradzo, Zimbabwe's leading funeral insurance provider, sought to expand its services to the Zimbabwean diaspora, ensuring seamless access to their offerings worldwide. The project aimed to create a digital solution to bridge the gap for clients abroad, maintaining their connection to cultural traditions while providing financial security.",
+      "problem": "The challenge was to address the difficulties faced by international clients, including time zone differences, complex payment methods, and restricted access to policy management, which hindered their ability to manage their funeral insurance effectively.",
+      "contributions": "I designed and implemented the Sahwira Self-Service Portal (SIP). I created a platform that offered global 24/7 access, secure international payment options, and a comprehensive self-service experience, including digital onboarding and real-time policy management.",
+      "hasProjectLink": true
+    }
+  ]
+}

@@ -1,0 +1,430 @@
+---
+title: "Building for Scale: Lessons from Managing 100K+ Concurrent Users"
+description: "A deep dive into the architecture decisions and challenges faced while building the ePremier League platform for Gfinity, handling massive concurrent user loads during live esports events."
+publishDate: 2024-11-28T00:00:00.000Z
+author: "Melvin Mupondori"
+image: "/assets/images/posts/building-for-scale-100k-users.jpg"
+tags: ["architecture", "scalability", "performance", "esports", "real-time"]
+category: "Development" 
+featured: false
+draft: false
+pexels_attribution: {
+  "photographer": "Christina Morillo",
+  "photographer_url": "https://www.pexels.com/@christina-morillo-1181697",
+  "photo_url": "https://www.pexels.com/photo/photo-of-woman-using-laptop-1181671/",
+  "alt": "Photo of woman using laptop."
+}
+---
+
+import { Image } from 'astro:assets'
+import BreakoutImage from '@components/BreakoutImage.astro'
+import BlockQuote from '@components/BlockQuote.astro'
+
+# Building for Scale: Lessons from Managing 100K+ Concurrent Users
+
+When I joined Gfinity to work on the ePremier League platform, I knew we were building something ambitious. What I didn't fully grasp was the scale we'd need to handle when Premier League football clubs' esports teams competed in front of massive global audiences.
+
+<BreakoutImage src="/assets/images/posts/pexels-photo-6476808.jpeg" alt="Contemporary office setup featuring digital marketing strategy on a computer screen, ideal for business technology themes." />
+
+<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+  <span>Photo by </span>
+  <a href="https://www.pexels.com/@mikael-blomkvist" target="_blank" rel="noopener" class="underline hover:text-blue-600">
+    Mikael Blomkvist
+  </a>
+  <span>on</span>
+  <a href="https://www.pexels.com/photo/business-plan-schedule-written-on-the-notebook-6476808/" target="_blank" rel="noopener" class="underline hover:text-blue-600">
+    Pexels
+  </a>
+</div>
+
+The ePremier League brings together all 20 Premier League clubs in competitive EA SPORTS FC™ tournaments, with matches broadcast live and thousands of fans following their teams online. During peak events, we regularly handled over 100,000 concurrent users, all expecting real-time updates, seamless streaming integration, and zero downtime.
+
+Here's what I learned about building systems that can handle that kind of scale.
+
+<BreakoutImage src="/assets/images/posts/pexels-photo-1181671.jpeg" />
+
+## The Challenge: More Than Just Numbers
+
+When people talk about "scale," they often focus on user numbers. But true scale isn't just about concurrent users – it's about concurrent *actions*. During live matches, users aren't just passive observers:
+
+- **Real-time score updates** every few seconds
+- **Live chat and reactions** from thousands of fans simultaneously  
+- **Tournament bracket updates** as matches conclude
+- **Streaming integrations** with broadcast platforms
+- **Admin dashboard actions** from race control operators
+- **Player profile updates** and statistics in real-time
+
+Each user might generate 10-20 server interactions per minute during peak activity. Suddenly, 100K users becomes over 1 million operations per minute.
+
+## Architecture Decisions That Made the Difference
+
+### 1. **Event-Driven Architecture with WebSockets**
+
+Traditional REST APIs couldn't handle the real-time nature of esports. We implemented a robust WebSocket system with Redis Pub/Sub for message distribution:
+
+```typescript
+// Simplified version of our real-time event system
+class RealTimeEventHandler {
+  private redis: Redis
+  private websocketManager: WebSocketManager
+  
+  async publishMatchUpdate(matchId: string, update: MatchUpdate) {
+    // Validate and process the update
+    const processedUpdate = await this.processUpdate(update)
+    
+    // Publish to Redis channel
+    await this.redis.publish(
+      `match:${matchId}:updates`, 
+      JSON.stringify(processedUpdate)
+    )
+    
+    // Redis subscribers in other server instances will pick this up
+    // and broadcast to their connected WebSocket clients
+  }
+  
+  async handleRedisMessage(channel: string, message: string) {
+    const update = JSON.parse(message)
+    const matchId = this.extractMatchId(channel)
+    
+    // Broadcast to all connected clients following this match
+    this.websocketManager.broadcastToRoom(`match:${matchId}`, update)
+  }
+}
+```
+
+**Key insight**: Don't just use WebSockets everywhere. We maintained REST APIs for operations that didn't need real-time updates, which reduced server load and improved reliability.
+
+### 2. **Smart Caching Strategy**
+
+With 100K+ users requesting similar data (tournament brackets, player stats, match schedules), caching was crucial. But naive caching can cause problems at scale.
+
+```typescript
+// Multi-layer caching approach
+class DataService {
+  private redisCache: Redis
+  private memoryCache: LRU<string, any>
+  
+  async getTournamentBracket(tournamentId: string): Promise<Bracket> {
+    // L1: Memory cache (fastest, smallest)
+    let bracket = this.memoryCache.get(`bracket:${tournamentId}`)
+    if (bracket) return bracket
+    
+    // L2: Redis cache (fast, shared across instances)
+    const cached = await this.redisCache.get(`bracket:${tournamentId}`)
+    if (cached) {
+      bracket = JSON.parse(cached)
+      this.memoryCache.set(`bracket:${tournamentId}`, bracket)
+      return bracket
+    }
+    
+    // L3: Database (authoritative source)
+    bracket = await this.database.getTournamentBracket(tournamentId)
+    
+    // Cache at both levels with appropriate TTLs
+    await this.redisCache.setex(
+      `bracket:${tournamentId}`, 
+      300, // 5 minutes
+      JSON.stringify(bracket)
+    )
+    this.memoryCache.set(`bracket:${tournamentId}`, bracket)
+    
+    return bracket
+  }
+}
+```
+
+**The surprise challenge**: Cache invalidation became complex when tournament brackets updated during live events. We implemented a publish/subscribe system for cache invalidation across all server instances.
+
+### 3. **Database Optimization Under Pressure**
+
+Our PostgreSQL database became the bottleneck faster than expected. Here's what we learned:
+
+#### Connection Pooling Saved Us
+```typescript
+// PgPool configuration that handled our scale
+const pool = new Pool({
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  port: 5432,
+  max: 20, // Maximum pool size
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+})
+```
+
+But the real game-changer was **read replicas**. We directed all read operations (95% of our traffic) to read-only replicas, keeping the primary database free for writes.
+
+#### Query Optimization Under Load
+Some queries that worked fine with 1K users became catastrophic with 100K users:
+
+```sql
+-- This query killed performance during peak load
+SELECT m.*, p1.name as player1_name, p2.name as player2_name
+FROM matches m
+JOIN players p1 ON m.player1_id = p1.id  
+JOIN players p2 ON m.player2_id = p2.id
+WHERE m.tournament_id = $1
+ORDER BY m.scheduled_time DESC;
+
+-- Optimized version with denormalized data
+SELECT match_id, player1_name, player2_name, scheduled_time, status
+FROM match_details_view
+WHERE tournament_id = $1
+ORDER BY scheduled_time DESC;
+```
+
+**Key insight**: Denormalization isn't evil at scale. We created materialized views that were updated asynchronously, dramatically improving read performance.
+
+## The Infrastructure That Kept Us Running
+
+### Load Balancing Strategy
+
+We used a multi-tier load balancing approach:
+
+1. **CDN Layer** (CloudFlare): Static assets and API response caching
+2. **Application Load Balancer** (AWS ALB): Geographic distribution
+3. **Internal Load Balancer**: Intelligent routing based on server load
+
+### Auto-Scaling Configuration
+
+```yaml
+# Our Kubernetes auto-scaling setup
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: epl-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: epl-api
+  minReplicas: 5
+  maxReplicas: 50
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource  
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+```
+
+**The learning**: Auto-scaling isn't magic. We had to carefully tune our scaling metrics and ensure our application could handle rapid instance changes without data loss.
+
+<BlockQuote author="Hard-learned wisdom">
+  Premature optimization is the root of all evil, but so is ignoring performance until it's too late. Find the balance.
+</BlockQuote>
+
+## Monitoring and Observability: Our Early Warning System
+
+At scale, you can't wait for users to report problems. We implemented comprehensive monitoring:
+
+### Key Metrics We Tracked
+- **Response times** (P50, P95, P99)
+- **Error rates** by endpoint
+- **WebSocket connection counts**
+- **Database query performance**
+- **Cache hit rates**
+- **Server resource utilization**
+
+### The Dashboard That Mattered
+
+```typescript
+// Custom metrics we pushed to our monitoring system
+class MetricsCollector {
+  async recordApiCall(endpoint: string, duration: number, status: number) {
+    await Promise.all([
+      this.prometheus.histogram('api_request_duration', duration, { endpoint, status }),
+      this.prometheus.counter('api_requests_total', 1, { endpoint, status }),
+    ])
+  }
+  
+  async recordWebSocketEvent(event: string, room: string) {
+    await this.prometheus.counter('websocket_events_total', 1, { event, room })
+  }
+}
+```
+
+**Critical insight**: The most important metric wasn't server CPU or memory – it was **user-perceived latency**. We tracked how long it took for match updates to reach end users, not just how fast our servers processed them.
+
+## When Things Went Wrong (And They Did)
+
+### The Great Database Lock Incident
+
+During the semi-finals, a poorly optimized query caused a cascading lock situation. Tournament bracket updates froze for 12 minutes while 80K users hammered refresh buttons.
+
+**What we learned**: 
+- Always test database queries under simulated load
+- Implement circuit breakers for database operations
+- Have a rollback plan for every deployment
+
+### The WebSocket Memory Leak
+
+Our WebSocket connection manager had a subtle memory leak that only manifested under high connection counts. After 6 hours of peak load, servers would run out of memory.
+
+**The fix**:
+```typescript
+// Before: Memory leak in connection cleanup
+class WebSocketManager {
+  private connections = new Map<string, WebSocket>()
+  private roomSubscriptions = new Map<string, Set<string>>()
+  
+  removeConnection(connectionId: string) {
+    this.connections.delete(connectionId)
+    // BUG: Forgot to clean up room subscriptions!
+  }
+}
+
+// After: Proper cleanup
+class WebSocketManager {
+  removeConnection(connectionId: string) {
+    const connection = this.connections.get(connectionId)
+    if (connection) {
+      // Clean up all room subscriptions for this connection
+      for (const [room, subscribers] of this.roomSubscriptions) {
+        subscribers.delete(connectionId)
+        if (subscribers.size === 0) {
+          this.roomSubscriptions.delete(room)
+        }
+      }
+      this.connections.delete(connectionId)
+    }
+  }
+}
+```
+
+## Performance Optimizations That Made a Difference
+
+### 1. **Batch Operations**
+Instead of processing match updates individually, we batched them:
+
+```typescript
+class MatchUpdateProcessor {
+  private updateQueue: MatchUpdate[] = []
+  private batchTimer: NodeJS.Timeout | null = null
+  
+  queueUpdate(update: MatchUpdate) {
+    this.updateQueue.push(update)
+    
+    if (!this.batchTimer) {
+      this.batchTimer = setTimeout(() => this.processBatch(), 100)
+    }
+  }
+  
+  private async processBatch() {
+    const batch = [...this.updateQueue]
+    this.updateQueue = []
+    this.batchTimer = null
+    
+    // Process all updates in a single database transaction
+    await this.database.processBatchUpdates(batch)
+    
+    // Broadcast all updates at once
+    await this.broadcastBatch(batch)
+  }
+}
+```
+
+### 2. **Intelligent Data Pagination**
+For tournament brackets with hundreds of matches, we implemented cursor-based pagination:
+
+```typescript
+async getTournamentMatches(
+  tournamentId: string, 
+  cursor?: string, 
+  limit: number = 50
+) {
+  const query = `
+    SELECT * FROM matches 
+    WHERE tournament_id = $1 
+    ${cursor ? 'AND id > $2' : ''}
+    ORDER BY id ASC 
+    LIMIT $${cursor ? '3' : '2'}
+  `
+  
+  const params = cursor ? [tournamentId, cursor, limit] : [tournamentId, limit]
+  const matches = await this.database.query(query, params)
+  
+  return {
+    matches,
+    nextCursor: matches.length === limit ? matches[matches.length - 1].id : null
+  }
+}
+```
+
+### 3. **Smart WebSocket Room Management**
+We avoided broadcasting to rooms with no active listeners:
+
+```typescript
+class RoomManager {
+  private activeRooms = new Map<string, Set<string>>()
+  
+  joinRoom(connectionId: string, room: string) {
+    if (!this.activeRooms.has(room)) {
+      this.activeRooms.set(room, new Set())
+    }
+    this.activeRooms.get(room)!.add(connectionId)
+  }
+  
+  broadcast(room: string, message: any) {
+    const connections = this.activeRooms.get(room)
+    if (!connections || connections.size === 0) {
+      return // Don't broadcast to empty rooms
+    }
+    
+    // Broadcast to active connections only
+    for (const connectionId of connections) {
+      this.sendToConnection(connectionId, message)
+    }
+  }
+}
+```
+
+## The Results: Success Under Pressure
+
+By the end of the tournament season, our platform had handled:
+- **100,000+ concurrent users** during finals
+- **2.3 million real-time updates** during peak events
+- **99.97% uptime** across the entire season
+- **Sub-200ms average response times** even under peak load
+
+## Key Takeaways for Building at Scale
+
+### 1. **Plan for 10x Your Expected Load**
+If you think you'll have 10K users, plan for 100K. The cost of over-engineering is much lower than the cost of downtime during critical moments.
+
+### 2. **Monitoring Is Not Optional**
+Implement comprehensive monitoring from day one. You can't optimize what you can't measure.
+
+### 3. **Test Everything Under Load**
+Load testing isn't just about your main application – test your database, your caches, your third-party integrations, everything.
+
+### 4. **Have a Rollback Plan**
+Every deployment should be quickly reversible. When you're serving 100K users, you can't afford extended downtime to fix a bad deployment.
+
+### 5. **Embrace Eventual Consistency**
+Not everything needs to be immediately consistent. Tournament brackets can have a 30-second delay if it means better performance for live match updates.
+
+## What's Next?
+
+The lessons learned from the ePremier League platform have influenced every project I've worked on since. Scale isn't just about handling more users – it's about building systems that remain performant, reliable, and maintainable as they grow.
+
+In my next post, I'll dive deeper into one specific aspect of this architecture: "Real-Time Data Synchronization: Building WebSocket Systems That Don't Fall Over."
+
+## Questions for You
+
+Have you worked on systems that needed to handle sudden scale? What were your biggest challenges? I'd love to hear about your experiences in the comments below.
+
+And if you're building something that might need to scale quickly, feel free to reach out – I'm always happy to discuss architecture challenges with fellow developers.
+
+---
+
+*Want to discuss this further? Connect with me on [LinkedIn](https://linkedin.com/in/melvinmupondori) or [send me an email](/contact). I love talking about scalable architecture and the lessons learned from building systems under pressure.*

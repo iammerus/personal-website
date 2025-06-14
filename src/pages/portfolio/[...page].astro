@@ -1,54 +1,73 @@
 ---
 import DefaultLayout from '@layouts/DefaultLayout.astro'
-import PageHeader from '@components/PageHeader.astro'
-import { Card, Pagination } from 'accessible-astro-components'
-import { getCollection } from 'astro:content'
 import type { GetStaticPaths, Page } from 'astro'
-import type { CollectionEntry } from 'astro:content'
 
-// Import images directly for optimization
-import projectImage1 from '@assets/images/projects/project-image-1.png'
-import projectImage2 from '@assets/images/projects/project-image-2.png'
-import projectImage3 from '@assets/images/projects/project-image-3.png'
-import projectImage4 from '@assets/images/projects/project-image-4.png'
-import projectImage5 from '@assets/images/projects/project-image-5.png'
-import projectImage6 from '@assets/images/projects/project-image-6.png'
+// Import project data
+import projectsData from '../../../data/projects.json'
 
-export const getStaticPaths = (async ({ paginate }) => {
-  const projects = await getCollection('projects')
+// Define types for our project data
+interface ProjectMetric {
+  value: string
+  description: string
+}
 
-  const projectImages = [projectImage1, projectImage2, projectImage3, projectImage4, projectImage5, projectImage6]
+interface Project {
+  title: string
+  company: string
+  role: string
+  duration: string
+  skills: string[]
+  description: string
+  problem: string
+  contributions: string
+  outcomes: string
+  metrics?: ProjectMetric[]
+  hasProjectLink?: boolean
+}
 
-  const projectsWithImages = projects.map((project, index) => {
-    return {
-      ...project,
-      featuredImage: projectImages[index % projectImages.length],
-    }
-  })
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
+  // Map project data with images
+  const projectImageMap: Record<string, string> = {
+    'Integrated Clinical Practice Management System': '/assets/images/projects/community_dental_clinical.png',
+    'ePremier League Platform': '/assets/images/projects/epremier_league_logo.webp',
+    'Nyaradzo SIP': '/assets/images/projects/sahwira_internation_plan.png'
+  }
 
-  return paginate(projectsWithImages, { pageSize: 6 })
-}) satisfies GetStaticPaths
+  // Transform projects data to include images and IDs
+  // Ensure projectsData.projects is an array before mapping
+  const projectsSource: Project[] = Array.isArray(projectsData?.projects) ? projectsData.projects : [];
+
+  if (!Array.isArray(projectsData?.projects)) {
+    console.warn(`[...page].astro: projectsData.projects is not an array or projectsData is undefined. Check data/projects.json. Found: ${JSON.stringify(projectsData?.projects)}. Using empty array for projects.`);
+  }
+
+  const transformedProjects = projectsSource.map((project: Project, index: number) => ({
+    ...project,
+    id: project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    featuredImage: projectImageMap[project.title] || '/assets/images/projects/community_dental_clinical.png',
+    author: 'Melvin Mupondori'
+  }));
+
+  return paginate(transformedProjects, { pageSize: 6 });
+};
 
 interface Props {
-  page: Page<CollectionEntry<'projects'> & { featuredImage: any }>
+  page: Page<Project & { id: string; featuredImage: string; author: string }>
 }
 
 const { page } = Astro.props
-
-// Prepare pagination props
-const currentPage = page.currentPage
-const totalPages = Math.ceil(page.total / page.size)
 ---
 
 <DefaultLayout
   title="Portfolio"
-  description="A showcase of projects built with Astro Content Collections, demonstrating dynamic content management."
+  description="Showcase of real-world projects and technical achievements, featuring scalable web applications and enterprise solutions built with modern technologies."
 >
   <PageHeader
     title="Portfolio"
-    subtitle='A showcase of projects built with Astro Content Collections, demonstrating dynamic content management and organization. Learn more about <a href="https://docs.astro.build/en/guides/content-collections/">Astro Content Collections</a> in the official documentation.'
+    subtitle="A showcase of real-world projects I've built throughout my career, from enterprise-grade clinical management systems to global esports platforms serving 100K+ concurrent users."
     bgType="bordered"
   />
+  
   <section class="my-12">
     <div class="container">
       <p class="text-sm"><em>Project {page.start + 1} through {page.end + 1} of {page.total} total projects</em></p>
@@ -57,12 +76,27 @@ const totalPages = Math.ceil(page.total / page.size)
           page.data.map((project) => (
             <li>
               <Card
-                imageComponent={project.featuredImage}
+                img={project.featuredImage}
                 url={'/portfolio/' + project.id}
-                title={project.data.title}
-                footer={'Author: ' + project.data.author}
+                title={project.title}
+                footer={`${project.role} at ${project.company}`}
               >
-                {project.data.description}
+                <div class="space-y-2">
+                  <p class="text-sm text-gray-600 dark:text-gray-400">{project.duration}</p>
+                  <p>{project.description}</p>
+                  <div class="flex flex-wrap gap-1 mt-3">
+                    {project.skills.slice(0, 4).map((skill) => (
+                      <span class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                        {skill}
+                      </span>
+                    ))}
+                    {project.skills.length > 4 && (
+                      <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                        +{project.skills.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                </div>
               </Card>
             </li>
           ))
