@@ -13,18 +13,6 @@
     "preview": "astro preview"
   },
   "keywords": [
-    "astro",
-    "astro-component",
-    "astro-components",
-    "accessible",
-    "accessibility",
-    "a11y",
-    "wcag",
-    "responsive",
-    "ui-library",
-    "ui-components",
-    "blog",
-    "portfolio"
   ],
   "devDependencies": {
     "@astrojs/mdx": "^4.3.0",
