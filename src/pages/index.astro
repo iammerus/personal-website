@@ -3,22 +3,36 @@ import DefaultLayout from '@layouts/DefaultLayout.astro'
 import HeroSection from '@components/vue/HeroSection.vue'
 import SkillsShowcase from '@components/vue/SkillsShowcase.vue'
 import ProjectsShowcase from '@components/vue/ProjectsShowcase.vue'
-import { parseResumeMarkdown } from '@/utils/resumeParser'
+import { loadResumeData, loadLinksData } from '../utils/resumeParser'
 import fs from 'fs'
 import path from 'path'
 
-// Read and parse resume data
-const resumePath = path.join(process.cwd(), 'RESUME.md')
-const resumeContent = fs.readFileSync(resumePath, 'utf-8')
-const resumeData = parseResumeMarkdown(resumeContent)
+// Load resume and links data from JSON files
+const resumeJsonPath = path.join(process.cwd(), 'data/resume.json')
+const linksJsonPath = path.join(process.cwd(), 'data/links.json')
+
+let resumeData;
+let linksData;
+
+try {
+  const resumeContent = fs.readFileSync(resumeJsonPath, 'utf-8')
+  const linksContent = fs.readFileSync(linksJsonPath, 'utf-8')
+  resumeData = JSON.parse(resumeContent)
+  linksData = JSON.parse(linksContent)
+} catch (error) {
+  console.error('Failed to load JSON data:', error)
+  // Fallback to utility functions
+  resumeData = loadResumeData()
+  linksData = loadLinksData()
+}
 ---
 
 <DefaultLayout title="Melvin Mupondori - Senior Full-Stack Engineer" description="Senior Full-Stack Engineer with 5+ years of experience building scalable web solutions. Specializing in React, Vue.js, Node.js, and cloud architecture.">
   <!-- Hero Section -->
   <HeroSection
     client:load
-    name={resumeData.contact.name}
-    title={resumeData.contact.title}
+    name={resumeData.personalInfo.name}
+    title={resumeData.personalInfo.title}
     description={resumeData.profile.substring(0, 200) + '...'}
   />
   
@@ -41,7 +55,7 @@ const resumeData = parseResumeMarkdown(resumeContent)
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
         <a
-          href={`mailto:${resumeData.contact.email}`}
+          href={`mailto:${resumeData.personalInfo.email}`}
           class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

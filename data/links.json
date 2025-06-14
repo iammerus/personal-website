@@ -1,0 +1,34 @@
+{
+  "links": {
+    "github": {
+      "url": "https://github.com/iammerus",
+      "display": "GitHub",
+      "type": "code_repository"
+    },
+    "portfolio": {
+      "url": "https://mups.co.zw",
+      "display": "Personal Website",
+      "type": "portfolio"
+    },
+    "linkedin": {
+      "url": "https://www.linkedin.com/in/melvin-mupondori-815318210/",
+      "display": "LinkedIn",
+      "type": "professional_network"
+    },
+    "twitter": {
+      "url": "https://x.com/wezhirawevhu",
+      "display": "X (Twitter)",
+      "type": "social_media"
+    }
+  },
+  "contact": {
+    "email": "melvin.rufetu@proton.me",
+    "phone": "+263(0)783-944-585",
+    "location": "Harare, Zimbabwe"
+  },
+  "social": {
+    "github": "iammerus",
+    "linkedin": "melvin-mupondori-815318210",
+    "twitter": "wezhirawevhu"
+  }
+}

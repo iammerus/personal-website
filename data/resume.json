@@ -1,0 +1,123 @@
+{
+  "personalInfo": {
+    "name": "Melvin Mupondori",
+    "title": "Full Stack Engineer",
+    "location": "Harare, Zimbabwe",
+    "phone": "+263(0)783-944-585",
+    "email": "melvin.rufetu@proton.me",
+    "links": {
+      "github": "GitHub",
+      "portfolio": "Portfolio"
+    }
+  },
+  "profile": "Senior Full-stack Engineer with 5+ years of experience building end-to-end web solutions across healthcare, e-sports, and enterprise sectors. Proficient across the entire technology stack: frontend (React, Vue.js, TypeScript), backend (Node.js, Laravel, GraphQL, RESTful APIs), and DevOps (Docker, Kubernetes, CI/CD). Architected scalable microservices handling 1M+ daily requests and optimized database performance achieving 75% faster read times. Experienced with modern web approaches including SSR, JAMstack architecture, and progressive web applications. Integrates machine learning capabilities into web applications using TensorFlow.js and Python-based ML services. Implements robust security practices, accessibility standards (WCAG), and real-time features (WebSockets) while leveraging cutting-edge tools like Next.js, Nuxt.js, and serverless functions alongside cloud platforms (AWS, GCP). Proven technical mentor who translates business requirements into robust technical solutions while elevating team capabilities.",
+  "experience": [
+    {
+      "position": "Senior Full-stack Engineer",
+      "company": "Community Dental Partners",
+      "location": "Denton",
+      "duration": "Nov 2022 — Present",
+      "techStack": ["React", "shadcn/ui", "Redux", "Node.js", "Laravel", "ASP.NET Core", "AWS RDS", "Lambda", "Playwright"],
+      "achievements": [
+        "Architected and led frontend development of an enterprise-grade intranet application managing the complete patient journey including scheduling, insurance verification, and billing systems using React and shadcn/ui",
+        "Enhanced application performance by 50% through implementing advanced techniques including tree shaking, bundle size reduction, strategic caching (both browser and in-memory), and server-side rendering",
+        "Designed and maintained 20+ internal healthcare applications handling practice management, synchronized data from distributed OpenDental instances to centralized AWS RDS infrastructure, processing TBs of data monthly",
+        "Engineered microservices architecture integrating with external healthcare systems including Medicare, insurance providers, and SwellCX while building secure data pipelines",
+        "Established robust CI/CD pipelines incorporating end-to-end testing with Playwright as part of the automated build process",
+        "Mentored 3 junior developers through structured code reviews, pair programming sessions, and technical guidance, resulting in their promotion to mid-level roles"
+      ]
+    },
+    {
+      "position": "Software Engineer",
+      "company": "OperateBeyond",
+      "location": "Grand Rapids",
+      "duration": "Aug 2022 — Oct 2022",
+      "techStack": ["Vue.js", "NaiveUI", "Laravel", "Zend", "Elasticsearch", "Redis"],
+      "achievements": [
+        "Optimized Elasticsearch implementation for multi-industry dealership platform through strategic tuning of indexing parameters, refined shard management, explicit data type mappings, and query optimization, reducing index times by 40% and search latency by 50%",
+        "Developed a responsive dealership management system using Vue.js and NaiveUI that integrated with diverse legacy Dealer Management Systems across powersports, marine, and RV industries",
+        "Created a fault-tolerant inventory data ingestion and syndication system capable of normalizing disparate data formats from hundreds of dealers to multiple third-party classified sites",
+        "Constructed modular integration framework with queuing systems and automated recovery processes to handle the complexity of diverse data sources and ensure system resilience"
+      ]
+    },
+    {
+      "position": "Software Engineer",
+      "company": "Gfinity PLC",
+      "location": "London",
+      "duration": "Jul 2021 — Jul 2022",
+      "techStack": ["Vue 3", "Nuxt", "Vite", "NaiveUI", "WebSocket", "Zend/PHP", "Redis"],
+      "achievements": [
+        "Developed key components for the F1 Esports platform using Vue 3, Nuxt, and NaiveUI, including dynamic results ingestion, real-time standings updates, and comprehensive race control admin dashboards",
+        "Reduced application loading time by 80% through implementing route-based code splitting, component-level lazy loading, vendor chunk separation, and optimized build configurations in Vite",
+        "Architected real-time tournament system handling 100K+ concurrent users through dedicated WebSocket server integration with backend event publishing via Redis Pub/Sub",
+        "Designed bracket generation and seeding logic for complex tournament progressions while building specialized team management interfaces for official F1 teams",
+        "Enhanced NVIDIA's GeForce Forums (Angular) performance by 25% through optimization of frontend components"
+      ]
+    },
+    {
+      "position": "Software Engineering Consultant",
+      "company": "Community Dental Partners",
+      "location": "Denton",
+      "duration": "Oct 2020 — May 2021",
+      "achievements": [
+        "Architected and maintained 10+ microservices using Node.js and GraphQL",
+        "Improved database read performance by 75% through query optimization and caching strategies",
+        "Developed RESTful API service for patient data integration, implementing comprehensive error handling and data validation",
+        "Built a comprehensive testing suite using Jest and Playwright, achieving 90% test coverage"
+      ]
+    },
+    {
+      "position": "Software Engineering Consultant",
+      "company": "American Sign Language Communication",
+      "location": "Henderson",
+      "duration": "Sep 2019 — Sep 2020",
+      "techStack": ["Node.js", "React", ".NET Core", "AWS (ECR, EKS)", "Docker", "Kubernetes", "ArgoCD", "Bitbucket Pipelines", "Jest", "Cypress"],
+      "achievements": [
+        "Modernized critical legacy Node.js application (Node 6 to Node 18) for ASL interpreter scheduling platform connecting healthcare providers with interpreters",
+        "Established comprehensive CI/CD pipeline using Bitbucket Pipelines, AWS ECR, and ArgoCD for GitOps-based deployments to EKS cluster, increasing feature delivery speed by 40%",
+        "Reduced build time by 60% through Node.js version upgrade, webpack configuration optimization, and implementation of parallel build processes",
+        "Designed robust Kubernetes deployment strategy with health/readiness probes enabling zero-downtime deployments and improved system reliability",
+        "Established comprehensive frontend and backend testing framework using Jest for unit/integration tests and Cypress for E2E testing, achieving 80% test coverage on critical application paths",
+        "Deployed regression testing suite for legacy codebase, preventing regressions during modernization efforts and ensuring business continuity"
+      ]
+    },
+    {
+      "position": "Full-stack Developer",
+      "company": "AM Agency",
+      "location": "Hurst",
+      "duration": "Jan 2019 — Aug 2019"
+    },
+    {
+      "position": "Full-stack Developer",
+      "company": "Webdev Zimbabwe",
+      "location": "Harare",
+      "duration": "Jan 2018 — Dec 2018"
+    }
+  ],
+  "education": [
+    {
+      "degree": "Higher National Diploma In Information Technology",
+      "institution": "Mutare Polytechnic College",
+      "location": "Harare",
+      "duration": "Jan 2014 — Jan 2017"
+    }
+  ],
+  "skills": {
+    "frontend": ["React", "Vue", "Next.js", "Nuxt.js", "TypeScript", "Tailwind"],
+    "backend": ["Node.js", "Express.js", "PHP (Laravel, Symfony)", "HAPI", "GraphQL", "REST API"],
+    "databases": ["PostgreSQL", "MySQL", "MongoDB", "Elasticsearch"],
+    "cloudAndDevOps": ["AWS", "GCP", "Docker", "Kubernetes", "CI/CD"],
+    "testing": ["Jest", "Playwright", "Cypress", "PHPUnit", "Pest"],
+    "other": ["Git", "WebSocket", "JAMstack"]
+  },
+  "languages": [
+    {
+      "language": "English",
+      "proficiency": "Highly proficient"
+    },
+    {
+      "language": "Shona",
+      "proficiency": "Native speaker"
+    }
+  ]
+}
