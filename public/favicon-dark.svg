@@ -6,8 +6,8 @@
     </linearGradient>
   </defs>
   
-  <!-- Background for better contrast -->
-  <rect width="32" height="32" rx="6" fill="#ffffff"/>
+  <!-- Dark background for dark mode -->
+  <rect width="32" height="32" rx="6" fill="#1f2937"/>
   
   <!-- Simple geometric mark - optimized for small size -->
   <g transform="translate(4, 8)">
@@ -17,6 +17,6 @@
     <rect x="0" y="10" width="16" height="2.5" rx="1.25" fill="url(#gradient)"/>
     
     <!-- Connecting dot -->
-    <circle cx="20" cy="8" r="2" fill="#059669"/>
+    <circle cx="20" cy="8" r="2" fill="#10b981"/>
   </g>
 </svg>

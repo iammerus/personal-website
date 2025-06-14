@@ -1,11 +1,10 @@
 ---
-import { Image } from 'astro:assets'
-import logo from '../assets/img/logo.svg'
+import mupsLogo from '../assets/img/mups-logo-adaptive.svg'
 
 /**
  * Logo Component
  *
- * @description Logo description
+ * @description MUPS Logo - Modern, clean logo with adaptive dark mode support
  */
 interface Props {
   /**
@@ -13,16 +12,22 @@ interface Props {
    * @default 'eager'
    */
   loading?: 'eager' | 'lazy'
+  /**
+   * Custom class for styling
+   */
+  class?: string
 }
 
-const { loading = 'eager' }: Props = Astro.props
+const { loading = 'eager', class: className = '' }: Props = Astro.props
 ---
 
-<a href="/" class="flex items-center gap-2 !no-underline">
-  <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-    MM
-  </div>
-  <span class="font-bold">Melvin Mupondori</span>
+<a href="/" class={`flex items-center !no-underline hover:opacity-80 transition-opacity duration-200 ${className}`}>
+  <img 
+    src={mupsLogo.src} 
+    alt="MUPS - Melvin Mupondori" 
+    class="h-18 w-auto text-gray-900 dark:text-white"
+    loading={loading}
+  />
 </a>
 
 <style lang="scss">
