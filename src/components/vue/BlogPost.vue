@@ -362,6 +362,7 @@ onMounted(() => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -369,51 +370,112 @@ onMounted(() => {
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .prose {
-  @apply text-gray-700 dark:text-gray-300;
+  color: rgb(55 65 81);
+}
+
+.prose :global(.dark) & {
+  color: rgb(209 213 219);
 }
 
 .prose h2 {
-  @apply text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: rgb(17 24 39);
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose :global(.dark) & h2 {
+  color: rgb(255 255 255);
 }
 
 .prose h3 {
-  @apply text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  color: rgb(17 24 39);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose :global(.dark) & h3 {
+  color: rgb(255 255 255);
 }
 
 .prose p {
-  @apply mb-6 leading-relaxed;
+  margin-bottom: 1.5rem;
+  line-height: 1.625;
 }
 
 .prose ul, .prose ol {
-  @apply mb-6 ml-6;
+  margin-bottom: 1.5rem;
+  margin-left: 1.5rem;
 }
 
 .prose li {
-  @apply mb-2;
+  margin-bottom: 0.5rem;
 }
 
 .prose code {
-  @apply bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm font-mono;
+  background-color: rgb(243 244 246);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.prose :global(.dark) & code {
+  background-color: rgb(31 41 55);
 }
 
 .prose pre {
-  @apply bg-gray-900 dark:bg-gray-800 p-6 rounded-lg overflow-x-auto mb-6;
+  background-color: rgb(17 24 39);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.prose :global(.dark) & pre {
+  background-color: rgb(31 41 55);
 }
 
 .prose pre code {
-  @apply bg-transparent p-0 text-gray-100;
+  background-color: transparent;
+  padding: 0;
+  color: rgb(243 244 246);
 }
 
 .prose blockquote {
-  @apply border-l-4 border-blue-500 pl-6 italic text-gray-600 dark:text-gray-400 mb-6;
+  border-left-width: 4px;
+  border-left-color: rgb(59 130 246);
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: rgb(75 85 99);
+  margin-bottom: 1.5rem;
+}
+
+.prose :global(.dark) & blockquote {
+  color: rgb(156 163 175);
 }
 
 .prose a {
-  @apply text-blue-600 dark:text-blue-400 hover:underline;
+  color: rgb(37 99 235);
+  text-decoration-line: underline;
+}
+
+.prose a:hover {
+  text-decoration-line: underline;
+}
+
+.prose :global(.dark) & a {
+  color: rgb(96 165 250);
 }
 </style>

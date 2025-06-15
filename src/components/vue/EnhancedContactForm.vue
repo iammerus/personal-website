@@ -196,6 +196,15 @@ The more details you provide, the better I can help!"
         </div>
       </div>
 
+      <!-- Honeypot field for spam protection (hidden) -->
+      <input
+        type="text"
+        name="_gotcha"
+        style="display: none !important;"
+        tabindex="-1"
+        autocomplete="off"
+      />
+
       <!-- Submit Button -->
       <div class="pt-4" ref="submitButton">
         <button
@@ -389,27 +398,54 @@ const handleSubmit = async () => {
   submitStatus.value = 'idle'
 
   try {
-    // Simulate form submission - replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Prepare FormData for FormSpree
+    const formData = new FormData()
+    formData.append('name', form.name.trim())
+    formData.append('email', form.email.trim())
+    formData.append('subject', form.subject)
+    formData.append('message', form.message.trim())
     
-    // For now, we'll just show success message
-    // In a real implementation, you would send this to your backend
-    console.log('Form submitted:', form)
+    // FormSpree configuration fields
+    formData.append('_replyto', form.email.trim())
+    formData.append('_subject', `New Contact Form Submission: ${form.subject}`)
+    formData.append('_language', 'en')
     
-    submitStatus.value = 'success'
+    // Add timestamp for tracking
+    formData.append('_timestamp', new Date().toISOString())
     
-    // Success animation
-    if (gsap && shouldAnimate.value) {
-      gsap.fromTo(formContainer.value,
-        { scale: 1 },
-        { scale: 1.02, duration: 0.2, yoyo: true, repeat: 1 }
-      )
+    // Submit to FormSpree
+    const response = await fetch('https://formspree.io/f/mdkzzeyj', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    
+    const data = await response.json()
+    
+    if (response.ok) {
+      submitStatus.value = 'success'
+      
+      // Success animation
+      if (gsap && shouldAnimate.value) {
+        gsap.fromTo(formContainer.value,
+          { scale: 1 },
+          { scale: 1.02, duration: 0.2, yoyo: true, repeat: 1 }
+        )
+      }
+      
+      // Reset form after successful submission
+      setTimeout(() => {
+        resetForm()
+      }, 5000)
+    } else {
+      // Handle FormSpree specific errors
+      if (data.errors) {
+        console.error('FormSpree validation errors:', data.errors)
+      }
+      throw new Error(data.error || 'Form submission failed')
     }
-    
-    // Reset form after successful submission
-    setTimeout(() => {
-      resetForm()
-    }, 5000)
     
   } catch (error) {
     console.error('Form submission error:', error)

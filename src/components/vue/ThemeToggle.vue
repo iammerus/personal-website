@@ -2,9 +2,11 @@
   <button
     ref="buttonRef"
     :class="[
-      'relative p-2 rounded-lg transition-all duration-300',
-      'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700',
-      'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900'
+      'relative p-3 rounded-xl transition-all duration-300 group',
+      'bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700',
+      'backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50',
+      'shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95',
+      'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 dark:focus:ring-offset-gray-900'
     ]"
     :aria-label="ariaLabel"
     @click="toggleTheme"

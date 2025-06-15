@@ -170,13 +170,23 @@
       </div>
     </div>
 
+    <!-- Honeypot field for spam protection (hidden) -->
+    <input
+      type="text"
+      name="_gotcha"
+      style="display: none !important;"
+      tabindex="-1"
+      autocomplete="off"
+    />
+
     <!-- Submit Button -->
     <div class="pt-4">
       <InteractiveButton
         type="submit"
-        :disabled="isSubmitting || !isFormValid"
+        :disabled="!canSubmit || isSubmitting"
         :loading="isSubmitting"
         class="w-full"
+        :class="{ 'opacity-50': !canSubmit }"
       >
         <template #icon>
           <svg v-if="!isSubmitting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,31 +199,56 @@
         </template>
         {{ isSubmitting ? 'Sending...' : 'Send Message' }}
       </InteractiveButton>
+      
+      <!-- Rate limiting feedback -->
+      <div v-if="nextSubmissionTime && !canSubmit" class="mt-2 p-2 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg">
+        <p class="text-amber-800 dark:text-amber-200 text-sm text-center">
+          ⏱️ Please wait {{ nextSubmissionTime }} minute{{ nextSubmissionTime > 1 ? 's' : '' }} before submitting again
+        </p>
+      </div>
     </div>
 
     <!-- Success/Error Messages -->
-    <div v-if="submitStatus === 'success'" class="p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
-      <div class="flex items-center">
-        <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <p class="text-green-800 dark:text-green-200 font-medium">
-          Message sent successfully! I'll get back to you soon.
-        </p>
+    <Transition name="message" appear>
+      <div v-if="submitStatus === 'success'" class="p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg transition-all duration-300">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <p class="text-green-800 dark:text-green-200 font-medium mb-1">
+              ✨ Message sent successfully!
+            </p>
+            <p class="text-green-700 dark:text-green-300 text-sm">
+              Thank you for reaching out! I'll get back to you within 24 hours.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </Transition>
 
-    <div v-if="submitStatus === 'error'" class="p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-      <div class="flex items-center">
-        <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-        </svg>
-        <p class="text-red-800 dark:text-red-200 font-medium">
-          There was an error sending your message. Please try again or contact me directly.
-        </p>
+    <Transition name="message" appear>
+      <div v-if="submitStatus === 'error'" class="p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg transition-all duration-300">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <div>
+            <p class="text-red-800 dark:text-red-200 font-medium mb-1">
+              ⚠️ Unable to send message
+            </p>
+            <p class="text-red-700 dark:text-red-300 text-sm mb-2">
+              There was an error sending your message. Please try again or contact me directly.
+            </p>
+            <p class="text-red-600 dark:text-red-400 text-xs">
+              Email: <a href="mailto:mel@mups.co.zw" class="underline hover:no-underline">mel@mups.co.zw</a>
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </Transition>
   </form>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -246,9 +281,15 @@ const isValid = reactive({
 // Form state
 const isSubmitting = ref(false)
 const submitStatus = ref<'idle' | 'success' | 'error'>('idle')
+const lastSubmissionTime = ref<number>(0)
+const submissionCount = ref(0)
 
 // Refs
 const formRef = ref<HTMLFormElement>()
+
+// Rate limiting constants
+const RATE_LIMIT_MINUTES = 5 // Minimum minutes between submissions
+const MAX_SUBMISSIONS_PER_HOUR = 3
 
 // Validation rules
 const validationRules = {
@@ -279,6 +320,26 @@ const validationRules = {
 const isFormValid = computed(() => {
   return Object.values(isValid).every(valid => valid) && 
          Object.values(errors).every(error => !error)
+})
+
+const canSubmit = computed(() => {
+  const now = Date.now()
+  const timeSinceLastSubmission = now - lastSubmissionTime.value
+  const minutesSinceLastSubmission = timeSinceLastSubmission / (1000 * 60)
+  
+  return isFormValid.value && 
+         !isSubmitting.value && 
+         minutesSinceLastSubmission >= RATE_LIMIT_MINUTES &&
+         submissionCount.value < MAX_SUBMISSIONS_PER_HOUR
+})
+
+const nextSubmissionTime = computed(() => {
+  if (canSubmit.value) return null
+  
+  const timeSinceLastSubmission = Date.now() - lastSubmissionTime.value
+  const minutesRemaining = RATE_LIMIT_MINUTES - (timeSinceLastSubmission / (1000 * 60))
+  
+  return Math.ceil(minutesRemaining)
 })
 
 // Methods
@@ -316,7 +377,10 @@ const resetForm = () => {
 const handleSubmit = async () => {
   validateForm()
   
-  if (!isFormValid.value) {
+  if (!canSubmit.value) {
+    if (nextSubmissionTime.value) {
+      console.warn(`Please wait ${nextSubmissionTime.value} minutes before submitting again`)
+    }
     return
   }
 
@@ -324,23 +388,66 @@ const handleSubmit = async () => {
   submitStatus.value = 'idle'
 
   try {
-    // Simulate form submission - replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Prepare FormData for FormSpree
+    const formData = new FormData()
+    formData.append('name', form.name.trim())
+    formData.append('email', form.email.trim())
+    formData.append('subject', form.subject)
+    formData.append('message', form.message.trim())
     
-    // For now, we'll just show success message
-    // In a real implementation, you would send this to your backend
-    console.log('Form submitted:', form)
+    // FormSpree configuration fields
+    formData.append('_replyto', form.email.trim()) // Set reply-to email
+    formData.append('_subject', `New Contact Form Submission: ${form.subject}`) // Custom subject
+    formData.append('_cc', '') // Add CC if needed
+    formData.append('_language', 'en') // Set language
     
-    submitStatus.value = 'success'
+    // Add timestamp and user agent for tracking
+    formData.append('_timestamp', new Date().toISOString())
+    formData.append('_user_agent', navigator.userAgent)
     
-    // Reset form after successful submission
-    setTimeout(() => {
-      resetForm()
-    }, 3000)
+    // Submit to FormSpree
+    const response = await fetch('https://formspree.io/f/mdkzzeyj', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    
+    const data = await response.json()
+    
+    if (response.ok) {
+      submitStatus.value = 'success'
+      
+      // Update rate limiting trackers
+      lastSubmissionTime.value = Date.now()
+      submissionCount.value += 1
+      
+      // Store in localStorage for persistence across sessions
+      localStorage.setItem('contactFormLastSubmission', lastSubmissionTime.value.toString())
+      localStorage.setItem('contactFormSubmissionCount', submissionCount.value.toString())
+      
+      // Reset form after successful submission
+      setTimeout(() => {
+        resetForm()
+      }, 3000)
+    } else {
+      // Handle FormSpree specific errors
+      if (data.errors) {
+        console.error('FormSpree validation errors:', data.errors)
+        // You could show specific field errors here if needed
+      }
+      throw new Error(data.error || 'Form submission failed')
+    }
     
   } catch (error) {
     console.error('Form submission error:', error)
     submitStatus.value = 'error'
+    
+    // Show more specific error messages
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.error('Network error - please check your connection')
+    }
   } finally {
     isSubmitting.value = false
   }
@@ -348,6 +455,27 @@ const handleSubmit = async () => {
 
 // Lifecycle
 onMounted(() => {
+  // Restore rate limiting state from localStorage
+  const storedLastSubmission = localStorage.getItem('contactFormLastSubmission')
+  const storedSubmissionCount = localStorage.getItem('contactFormSubmissionCount')
+  
+  if (storedLastSubmission) {
+    lastSubmissionTime.value = parseInt(storedLastSubmission, 10)
+  }
+  
+  if (storedSubmissionCount) {
+    const count = parseInt(storedSubmissionCount, 10)
+    const hourAgo = Date.now() - (60 * 60 * 1000)
+    
+    // Reset count if more than an hour has passed
+    if (lastSubmissionTime.value < hourAgo) {
+      submissionCount.value = 0
+      localStorage.removeItem('contactFormSubmissionCount')
+    } else {
+      submissionCount.value = count
+    }
+  }
+  
   // Add form animation on mount
   if (formRef.value) {
     formRef.value.style.opacity = '0'
@@ -420,10 +548,35 @@ textarea::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
 
+/* Message transition animations */
+.message-enter-active,
+.message-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.message-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.message-enter-to,
+.message-leave-from {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .form-appear {
+  .form-appear,
+  .message-enter-active,
+  .message-leave-active {
     animation: none;
+    transition: none !important;
   }
   
   input,
