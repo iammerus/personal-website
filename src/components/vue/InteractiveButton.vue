@@ -2,7 +2,7 @@
   <button
     ref="buttonRef"
     :class="[
-      'group relative inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2',
+      'group relative inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2',
       variantClasses,
       sizeClasses,
       disabled ? 'cursor-not-allowed opacity-50' : 'hover:scale-105 active:scale-95'
@@ -122,13 +122,13 @@ const variantClasses = computed(() => {
 const sizeClasses = computed(() => {
   switch (props.size) {
     case 'sm':
-      return 'px-3 py-1.5 text-sm'
+      return 'px-4 py-2 text-sm'
     case 'md':
       return 'px-6 py-3 text-base'
     case 'lg':
       return 'px-8 py-4 text-lg'
     default:
-      return ''
+      return 'px-6 py-3 text-base'
   }
 })
 
