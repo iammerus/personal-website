@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 // https://astro.build/config
 export default defineConfig({
   compressHTML: true,
-  site: 'https://melvinmupondori.dev',
+  site: 'https://mups.co.zw',
   integrations: [mdx(), vue(), icon(), compress()],
   build: {
     assets: '_astro'

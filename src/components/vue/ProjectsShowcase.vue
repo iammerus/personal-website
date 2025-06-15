@@ -2,37 +2,51 @@
   <section
     id="projects"
     ref="projectsRef"
-    class="py-20 bg-gray-50 dark:bg-gray-800"
+    class="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20 relative overflow-hidden"
   >
-    <div class="container mx-auto px-4">
+    <!-- Background decorative elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -top-4 -right-4 w-72 h-72 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-8 -left-8 w-96 h-96 bg-gradient-to-tr from-indigo-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="container mx-auto px-4 relative z-10">
       <div class="text-center mb-16">
+        <div ref="badgeRef" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium mb-6 opacity-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          My Work
+        </div>
         <h2
           ref="titleRef"
-          class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 opacity-0"
+          class="text-4xl md:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-900 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent mb-6 opacity-0"
         >
           Featured Projects
         </h2>
         <p
           ref="subtitleRef"
-          class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto opacity-0"
+          class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto opacity-0 leading-relaxed"
         >
-          A showcase of projects that demonstrate my expertise in modern web development
+          A showcase of projects that demonstrate my expertise in modern web development, 
+          from enterprise platforms to global gaming experiences
         </p>
       </div>
       
       <!-- Filter buttons -->
       <div
         ref="filtersRef"
-        class="flex flex-wrap justify-center gap-4 mb-12 opacity-0"
+        class="flex flex-wrap justify-center gap-3 mb-16 opacity-0"
       >
         <button
           v-for="filter in filters"
           :key="filter"
           :class="[
-            'px-6 py-2 rounded-full font-medium transition-all duration-300',
+            'px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105',
+            'backdrop-blur-sm border border-white/20 dark:border-gray-700/50',
             activeFilter === filter
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-600'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+              : 'bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg'
           ]"
           @click="setActiveFilter(filter)"
         >
@@ -43,7 +57,7 @@
       <!-- Projects grid -->
       <div
         ref="gridRef"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
       >
         <ProjectCard
           v-for="project in filteredProjects"
@@ -55,17 +69,18 @@
           :category="project.category"
           :tags="project.technologies"
           :interactive="true"
+          class="transform transition-all duration-300 hover:scale-[1.02]"
           @click="openProject(project)"
         >
           <template #footer>
             <div class="flex justify-between items-center">
-              <div class="flex gap-2">
+              <div class="flex gap-3">
                 <a
                   v-if="project.liveUrl"
                   :href="project.liveUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
+                  class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                   @click.stop
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +93,7 @@
                   :href="project.githubUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm font-medium"
+                  class="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300"
                   @click.stop
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -96,26 +111,32 @@
       <div
         v-if="hasMoreProjects"
         ref="loadMoreRef"
-        class="text-center mt-12 opacity-0"
+        class="text-center mb-8 opacity-0"
       >
         <InteractiveButton
           variant="outline"
           size="lg"
           :loading="loadingMore"
+          class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50"
           @click="loadMore"
         >
+          <template #icon>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </template>
           Load More Projects
         </InteractiveButton>
       </div>
       
       <!-- View All Projects link -->
-      <div class="text-center mt-8">
+      <div class="text-center">
         <a
           href="/portfolio"
-          class="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-300"
+          class="group inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
         >
-          View All Projects
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span>View All Projects</span>
+          <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </a>
@@ -159,6 +180,7 @@ interface Project {
 const projectsRef = ref<HTMLElement>()
 const titleRef = ref<HTMLElement>()
 const subtitleRef = ref<HTMLElement>()
+const badgeRef = ref<HTMLElement>()
 const filtersRef = ref<HTMLElement>()
 const gridRef = ref<HTMLElement>()
 const loadMoreRef = ref<HTMLElement>()
@@ -330,54 +352,66 @@ const setupAnimations = () => {
   const { shouldAnimate } = useScrollAnimation()
   
   if (!shouldAnimate.value) {
-    gsap.set([titleRef.value, subtitleRef.value, filtersRef.value, loadMoreRef.value], { opacity: 1 })
+    gsap.set([badgeRef.value, titleRef.value, subtitleRef.value, filtersRef.value, loadMoreRef.value], { opacity: 1 })
     return
   }
 
-  // Title animations
-  if (titleRef.value) {
-    gsap.fromTo(titleRef.value,
-      { opacity: 0, y: 50 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: titleRef.value,
-          start: 'top 80%'
-        }
-      }
-    )
-  }
+  // Stagger timeline for header elements
+  const headerTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: badgeRef.value,
+      start: 'top 80%'
+    }
+  })
 
-  if (subtitleRef.value) {
-    gsap.fromTo(subtitleRef.value,
-      { opacity: 0, y: 30 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: subtitleRef.value,
-          start: 'top 80%'
-        }
-      }
+  headerTl
+    .fromTo(badgeRef.value,
+      { opacity: 0, y: 30, scale: 0.8 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'back.out(1.7)' }
     )
-  }
+    .fromTo(titleRef.value,
+      { opacity: 0, y: 50 },
+      { opacity: 1, y: 0, duration: 1, ease: 'power3.out' },
+      '-=0.5'
+    )
+    .fromTo(subtitleRef.value,
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' },
+      '-=0.7'
+    )
 
   // Filters animation
   if (filtersRef.value) {
-    gsap.fromTo(filtersRef.value,
-      { opacity: 0, y: 20 },
+    gsap.fromTo(filtersRef.value?.children || [],
+      { opacity: 0, y: 20, scale: 0.8 },
       {
         opacity: 1,
         y: 0,
+        scale: 1,
         duration: 0.6,
-        ease: 'power3.out',
+        stagger: 0.1,
+        ease: 'back.out(1.7)',
         scrollTrigger: {
           trigger: filtersRef.value,
+          start: 'top 80%'
+        }
+      }
+    )
+  }
+
+  // Grid animation
+  if (gridRef.value) {
+    gsap.fromTo(gridRef.value?.children || [],
+      { opacity: 0, y: 50, scale: 0.9 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: gridRef.value,
           start: 'top 80%'
         }
       }

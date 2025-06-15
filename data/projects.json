@@ -52,7 +52,7 @@
       "problem": "Build a scalable digital ecosystem for multi-stage tournaments managing player registrations, scheduling, real-time results, and competitive integrity globally.",
       "contributions": "Led backend development using Zend for authentication, profiles, matchmaking, and results. Created UI with Vue.js and Naive UI, designed cloud infrastructure, and developed APIs for live event data integration.",
       "outcomes": "The platform successfully supported complex tournament requirements during peak periods. Seamless broadcast integration elevated visibility and enhanced engagement for players and fans.",
-      "hasProjectLink": true
+      "hasProjectLink": false
     },
     {
       "title": "Nyaradzo SIP",
@@ -82,7 +82,7 @@
       "description": "Nyaradzo, Zimbabwe's leading funeral insurance provider, sought to expand its services to the Zimbabwean diaspora, ensuring seamless access to their offerings worldwide. The project aimed to create a digital solution to bridge the gap for clients abroad, maintaining their connection to cultural traditions while providing financial security.",
       "problem": "The challenge was to address the difficulties faced by international clients, including time zone differences, complex payment methods, and restricted access to policy management, which hindered their ability to manage their funeral insurance effectively.",
       "contributions": "I designed and implemented the Sahwira Self-Service Portal (SIP). I created a platform that offered global 24/7 access, secure international payment options, and a comprehensive self-service experience, including digital onboarding and real-time policy management.",
-      "hasProjectLink": true
+      "hasProjectLink": false
     }
   ]
 }

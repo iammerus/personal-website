@@ -12,6 +12,9 @@ const {
   image = 'social-preview-image.png',
   author = 'Melvin Mupondori',
 } = Astro.props
+
+// Check if we're on the contact page
+const isContactPage = Astro.url.pathname === '/contact' || Astro.url.pathname === '/contact/'
 ---
 
 <html lang="en" dir="ltr">
@@ -32,7 +35,7 @@ const {
     <main id="main-content" transition:animate="fade">
       <slot />
     </main>
-    <Footer />
+    <Footer showContactSection={!isContactPage} />
     <style lang="scss" is:global>
       // sticky footer on low content pages
       html,
