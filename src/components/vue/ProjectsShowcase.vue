@@ -217,6 +217,7 @@ const fallbackProjects: Project[] = [
 
 // Map project data with images
 const projectImageMap: Record<string, string> = {
+  'Redflag': '/assets/images/projects/redflag.svg',
   'Integrated Clinical Practice Management System': '/assets/images/projects/community_dental_clinical.png',
   'ePremier League Platform': '/assets/images/projects/epremier_league_logo.webp',
   'Nyaradzo SIP': '/assets/images/projects/sahwira_internation_plan.png'

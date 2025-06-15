@@ -1,6 +1,56 @@
 {
   "projects": [
     {
+      "title": "Redflag",
+      "company": "Open Source Project",
+      "industry": "Security Tools",
+      "role": "Creator & Maintainer",
+      "duration": "2024 - Present",
+      "experience": "I created this project from scratch as an open source tool",
+      "skills": [
+        "Rust",
+        "Git",
+        "Security",
+        "CLI Development",
+        "Cross-platform Development",
+        "Pattern Matching",
+        "Entropy Analysis",
+        "GitHub Actions"
+      ],
+      "description": "Redflag is a lightweight, cross-platform secret scanner designed to identify potentially sensitive information in codebases. Built with Rust for performance and reliability, it helps developers and security teams detect exposed secrets, API keys, and credentials before they reach production environments.",
+      "problem": "Development teams often accidentally commit sensitive information like API keys, passwords, and tokens to version control systems. Traditional security scanning tools are often heavy, slow, or lack comprehensive git history analysis capabilities, leaving organizations vulnerable to credential exposure.",
+      "contributions": "Architected and implemented a high-performance secret scanning engine using Rust. Developed advanced pattern matching with regex support, Shannon entropy detection for high-entropy strings, and comprehensive git history analysis. Created flexible configuration system with custom exclusion policies and multiple output formats including JSON for CI/CD integration.",
+      "outcomes": "The tool provides fast, accurate secret detection across multiple file types with configurable severity levels. Its git history scanning capabilities allow teams to audit entire repository histories, while the lightweight design ensures minimal impact on development workflows. The cross-platform support and GitHub Actions integration make it accessible for teams of all sizes.",
+      "hasProjectLink": true,
+      "projectLink": "https://github.com/BuggyCorp/redflag"
+    },
+    {
+      "title": "Zeki",
+      "company": "Open Source Project",
+      "industry": "Developer Tools",
+      "role": "Creator & Maintainer",
+      "duration": "2024 - Present",
+      "experience": "I created this project from scratch as an open source framework",
+      "skills": [
+        "PHP",
+        "WhatsApp API",
+        "AI Integration",
+        "Framework Development",
+        "OpenAI",
+        "Anthropic",
+        "Google AI",
+        "Composer",
+        "Middleware Architecture",
+        "Bot Development"
+      ],
+      "description": "Zeki is a flexible and extensible PHP framework for building WhatsApp bots. It provides a comprehensive solution for creating intelligent conversational experiences with support for multiple WhatsApp providers, AI-powered intent detection, and rich interactive messaging capabilities.",
+      "problem": "Building WhatsApp bots requires handling complex API integrations, managing conversation state, processing different message types, and implementing intelligent response systems. Existing solutions lack flexibility, extensibility, and comprehensive AI integration, making it difficult for developers to create sophisticated bot experiences.",
+      "contributions": "Architected and implemented a modular framework with support for multiple WhatsApp providers (Facebook Cloud API, Twilio). Developed an intent-based message handling system with AI-powered detection using OpenAI, Anthropic, and Google AI. Created middleware architecture for flexible request processing and implemented support for interactive messages, media handling, and conversation state management.",
+      "outcomes": "The framework enables developers to rapidly build sophisticated WhatsApp bots with minimal boilerplate code. Its extensible architecture supports custom intents, middleware, and AI providers, while the comprehensive feature set handles everything from simple text responses to complex interactive conversations with rich media support.",
+      "hasProjectLink": true,
+      "projectLink": "https://github.com/iammerus/zeki"
+    },
+    {
       "title": "Integrated Clinical Practice Management System",
       "company": "Community Dental Partners",
       "role": "Senior Software Engineer",

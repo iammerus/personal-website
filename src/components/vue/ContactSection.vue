@@ -177,7 +177,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  email: 'melvin.rufetu@proton.me',
+  email: 'mel@mups.co.zw',
   location: 'Harare, Zimbabwe'
 })
 

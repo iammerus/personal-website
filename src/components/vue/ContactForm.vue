@@ -1,17 +1,28 @@
 <template>
-  <form
-    ref="formRef"
-    class="space-y-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8"
-    @submit.prevent="handleSubmit"
+  <div
+    ref="formContainer"
+    class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-8 sticky top-8"
   >
     <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium mb-4">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg>
+        Send Message
+      </div>
       <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-        Send a Message
+        Let's Start a Conversation
       </h3>
       <p class="text-gray-600 dark:text-gray-300">
-        I'll get back to you as soon as possible
+        Fill out the form below and I'll get back to you as soon as possible
       </p>
     </div>
+
+    <form
+      ref="formRef"
+      class="space-y-6"
+      @submit.prevent="handleSubmit"
+    >
 
     <!-- Name Field -->
     <div class="space-y-2">

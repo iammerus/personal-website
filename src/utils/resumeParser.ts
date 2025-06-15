@@ -74,7 +74,7 @@ export function loadResumeData(): ResumeData {
       title: "Senior Full Stack Engineer",
       location: "Harare, Zimbabwe",
       phone: "+263(0)783-944-585",
-      email: "melvin.rufetu@proton.me",
+      email: "mel@mups.co.zw",
       links: {
         github: "GitHub",
         portfolio: "Portfolio"

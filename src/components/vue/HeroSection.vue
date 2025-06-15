@@ -206,7 +206,7 @@ const typingComplete = ref(false)
 
 // Computed data
 const location = computed(() => 'Harare, Zimbabwe')
-const email = computed(() => 'melvin.rufetu@proton.me')
+const email = computed(() => 'mel@mups.co.zw')
 
 const highlights = [
   '5+ Years Experience',
