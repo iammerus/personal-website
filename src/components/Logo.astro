@@ -1,4 +1,4 @@
----
+ltw1---
 import mupsLogo from '../assets/img/mups-logo-adaptive.svg'
 
 /**
@@ -12,7 +12,7 @@ interface Props {
    * @default 'eager'
    */
   loading?: 'eager' | 'lazy'
-  /**
+  /**ltw1
    * Custom class for styling
    */
   class?: string
@@ -21,17 +21,119 @@ interface Props {
 const { loading = 'eager', class: className = '' }: Props = Astro.props
 ---
 
-<a href="/" class={`flex items-center !no-underline hover:opacity-80 transition-opacity duration-200 ${className}`}>
-  <img 
-    src={mupsLogo.src} 
-    alt="MUPS - Melvin Mupondori" 
-    class="h-18 w-auto text-gray-900 dark:text-white"
-    loading={loading}
-  />
+<a href="/" class={`logo-enhanced flex items-center !no-underline transition-all duration-300 hover:scale-105 group ${className}`}>
+  <div class="logo-wrapper">
+    <img 
+      src={mupsLogo.src} 
+      alt="MUPS - Melvin Mupondori" 
+      class="h-18 w-auto text-gray-900 dark:text-white transition-all duration-300 group-hover:brightness-110"
+      loading={loading}
+    />
+    <div class="logo-glow"></div>
+  </div>
+  <div class="logo-text">
+    <span class="logo-name">Melvin Mupondori</span>
+    <span class="logo-title">Full-Stack Developer</span>
+  </div>
 </a>
 
 <style lang="scss">
-  a {
+  .logo-enhanced {
     color: var(--foreground-color);
+    position: relative;
+    
+    .logo-wrapper {
+      position: relative;
+      margin-right: 0.75rem;
+      
+      .logo-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.3));
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+        filter: blur(10px);
+      }
+    }
+    
+    .logo-text {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      
+      .logo-name {
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1.2;
+        background: linear-gradient(135deg, #1f2937, #3b82f6);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        
+        .dark & {
+          background: linear-gradient(135deg, #f9fafb, #60a5fa);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+      }
+      
+      .logo-title {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6b7280;
+        line-height: 1;
+        
+        .dark & {
+          color: #9ca3af;
+        }
+      }
+    }
+    
+    &:hover {
+      .logo-wrapper .logo-glow {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+      }
+      
+      .logo-text .logo-name {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        
+        .dark & {
+          background: linear-gradient(135deg, #60a5fa, #a855f7);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+      }
+    }
+    
+    // Show text on larger screens
+    @media (min-width: 1024px) {
+      .logo-text {
+        display: flex;
+      }
+    }
+    
+    // Reduced motion
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+      
+      &:hover {
+        transform: none;
+        
+        .logo-wrapper .logo-glow {
+          display: none;
+        }
+      }
+    }
   }
 </style>

@@ -1,4 +1,4 @@
----
+ltw1---
 import ResponsiveToggle from './ResponsiveToggle.astro'
 import Logo from './Logo.astro'
 
@@ -37,6 +37,8 @@ import Logo from './Logo.astro'
     const mainMenu = mainNav.querySelector('ul') as HTMLUListElement | null
     const dropdownMenus = [...document.querySelectorAll('.has-dropdown button')] as HTMLButtonElement[]
 
+    console.log({mainNav})
+
     // functions
     const setActiveMenuItem = (): void => {
       const mobileDesktopMenus = mainNav.querySelectorAll('nav > ul')
@@ -45,11 +47,15 @@ import Logo from './Logo.astro'
       mobileDesktopMenus.forEach((menu) => {
         const menuItems = [...menu.querySelectorAll('a:not([rel*="external"])')] as HTMLAnchorElement[]
 
+        menuItems.forEach(i => i.classList.remove('is-active'))
+
         menuItems.forEach((menuItem) => {
-          if (currentPathname.includes(menuItem.pathname.replaceAll('/', '')) && menuItem.textContent !== 'Home') {
-            menuItem.classList.add('is-active')
-            menuItem.setAttribute('aria-current', 'page')
-          } else if (menuItem.textContent === 'Home' && currentPathname === '/') {
+          console.log({
+            cond: currentPathname.includes(menuItem.pathname.replaceAll('/', '')),
+            el: menuItem,
+            
+          })
+          if (currentPathname == (menuItem.pathname)) {
             menuItem.classList.add('is-active')
             menuItem.setAttribute('aria-current', 'page')
           }

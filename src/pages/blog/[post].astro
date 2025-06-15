@@ -1,8 +1,6 @@
 ---
 import DefaultLayout from '@layouts/DefaultLayout.astro'
-import PageHeader from '@components/PageHeader.astro'
-import SocialShares from '@components/SocialShares.astro'
-import BreakoutImage from '@components/BreakoutImage.astro'
+import BlogPost from '@components/vue/BlogPost.vue'
 import { getCollection, render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
 
@@ -24,15 +22,6 @@ interface Props {
 const { post } = Astro.props
 const { Content } = await render(post)
 
-// Format date helper
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date)
-}
-
 const readingTime = Math.ceil(post.body.length / 1000)
 
 const author = {
@@ -40,6 +29,17 @@ const author = {
   image: '/astronaut-hero-img.webp',
   bio: 'Senior Full-Stack Engineer with 5+ years of experience building scalable web applications.',
 }
+
+// Get related posts (mock for now - can be enhanced later)
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const relatedPosts = allPosts
+  .filter(p => p.id !== post.id && p.data.category === post.data.category)
+  .slice(0, 3)
+  .map((relatedPost, index) => ({
+    ...relatedPost,
+    featuredImage: relatedPost.data.image || '/assets/images/posts/post-image-1.png',
+    readingTime: Math.ceil(relatedPost.body.length / 1000)
+  }))
 ---
 
 <DefaultLayout 
@@ -47,136 +47,17 @@ const author = {
   description={post.data.description}
   url={`blog/${post.id}`}
 >
-  <PageHeader
-    title={post.data.title}
-    subtitle={post.data.description}
+  <BlogPost 
+    post={{
+      ...post,
+      featuredImage: post.data.image || '/assets/images/posts/post-image-1.png'
+    }}
     author={author}
-    bgType="bordered"
-    featuredImage={post.data.image}
-  />
-  
-  <!-- Article metadata -->
-  <section class="py-8 border-b border-gray-200 dark:border-gray-700">
-    <div class="container">
-      <div class="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600 dark:text-gray-400">
-        <div class="flex items-center gap-4">
-          <time datetime={post.data.publishDate.toISOString()}>
-            {formatDate(post.data.publishDate)}
-          </time>
-          <span>•</span>
-          <span>{readingTime} min read</span>
-          <span>•</span>
-          <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
-            {post.data.category}
-          </span>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          {post.data.tags.map((tag) => (
-            <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-              #{tag}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Article content -->
-  <section class="my-12">
-    <div class="narrow space-content container prose prose-lg max-w-none dark:prose-invert 
-                prose-headings:text-gray-900 dark:prose-headings:text-white
-                prose-p:text-gray-700 dark:prose-p:text-gray-300
-                prose-a:text-blue-600 dark:prose-a:text-blue-400
-                prose-strong:text-gray-900 dark:prose-strong:text-white
-                prose-code:text-pink-600 dark:prose-code:text-pink-400
-                prose-code:bg-gray-100 dark:prose-code:bg-gray-800
-                prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950
-                prose-blockquote:border-blue-600 dark:prose-blockquote:border-blue-400">
-      <Content />
-    </div>
-  </section>
-
-  <!-- Social sharing -->
-  <section class="my-12 border-t border-gray-200 dark:border-gray-700 pt-12">
-    <div class="narrow space-content container">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Share this post</h2>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">Found this helpful? Share it with your network!</p>
-      <SocialShares />
-    </div>
-  </section>
-
-  <!-- Related posts / Call to action -->
-  <section class="my-12 bg-gray-50 dark:bg-gray-800 py-16">
-    <div class="container text-center">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-        Want to discuss this further?
-      </h2>
-      <p class="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-        I'd love to hear your thoughts on this topic. Feel free to reach out if you have questions,
-        want to share your own experiences, or discuss potential collaboration opportunities.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a
-          href="/contact"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          Get in Touch
-        </a>
-        <a
-          href="/blog"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-          </svg>
-          More Posts
-        </a>
-      </div>
-    </div>
-  </section>
+    readingTime={readingTime}
+    relatedPosts={relatedPosts}
+    client:load
+  >
+    <Content slot="content" />
+  </BlogPost>
 </DefaultLayout>
 
-<style lang="scss" is:global>
-  @use '../../assets/scss/base/mixins' as *;
-
-  .narrow {
-    margin-inline: auto;
-    max-width: 65ch;
-  }
-  
-  .prose {
-    line-height: 1.7;
-  }
-  
-  .prose h1, .prose h2, .prose h3, .prose h4 {
-    margin-top: 2em;
-    margin-bottom: 1em;
-  }
-  
-  .prose p {
-    margin-bottom: 1.5em;
-  }
-  
-  .prose code {
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.25rem;
-    font-size: 0.875em;
-  }
-  
-  .prose pre {
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    margin: 2rem 0;
-    overflow-x: auto;
-  }
-  
-  .prose blockquote {
-    border-left: 4px solid;
-    padding-left: 1.5rem;
-    margin: 2rem 0;
-    font-style: italic;
-  }
-</style>
