@@ -9,26 +9,32 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  structuredData?: object;
 }
 
-const { 
-  title = "Melvin Mupondori", 
+const {
+  title = "Melvin Mupondori",
   description = "Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments.",
-  image = "/og-image.png"
+  image = "/og-image.png",
+  structuredData
 } = Astro.props;
+
+const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
 ---
 
 <!DOCTYPE html>
 <html lang="en-GB">
   <head>
-    <SEO 
+    <SEO
       title={title}
       description={description}
       image={image}
+      structuredData={structuredData}
     />
-    
-    <!-- Umami Analytics Placeholder -->
-    <script async src="https://analytics.umami.is/script.js" data-website-id="YOUR-UMAMI-WEBSITE-ID" data-domains="mups.co.zw"></script>
+
+    {umamiId && (
+      <script async src="https://analytics.umami.is/script.js" data-website-id={umamiId} data-domains="mups.co.zw"></script>
+    )}
     
     <!-- Theme script runs early to prevent FOUC -->
     <script is:inline>
@@ -53,9 +59,11 @@ const {
     <ClientRouter />
   </head>
   <body>
+    <!-- You found the service hatch. Nothing is on fire. -->
+    <a href="#main-content" class="skip-link">Skip to content</a>
     <div id="stars-container"></div>
     <Masthead />
-    <main>
+    <main id="main-content">
       <slot />
     </main>
     <Footer />
@@ -85,6 +93,21 @@ const {
       
       document.addEventListener('astro:page-load', () => {
         generateStars();
+      });
+    </script>
+
+    <script>
+      import { track } from '../lib/analytics';
+
+      // ponytail: one delegated listener instead of per-page handlers; persists across view transitions
+      document.addEventListener('click', (e) => {
+        const a = (e.target as Element).closest('a');
+        if (!a) return;
+        const href = a.getAttribute('href') || '';
+        if (href.startsWith('mailto:')) track('email_opened');
+        else if (href.includes('rss.xml')) track('rss_opened');
+        else if (href.includes('github.com') || href.includes('x.com')) track('external_profile_opened');
+        else if (href.startsWith('/work/') && href !== '/work/') track('case_study_opened');
       });
     </script>
   </body>

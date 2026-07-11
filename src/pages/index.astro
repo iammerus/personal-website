@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { person, SITE_URL } from '../lib/schema';
 
 const allPosts = await getCollection('blog', ({ data }) => {
   return import.meta.env.PROD ? !data.draft : true;
@@ -8,11 +9,17 @@ const allPosts = await getCollection('blog', ({ data }) => {
 
 // Sort by date descending
 const recentPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3);
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [person, { '@type': 'WebSite', name: 'Melvin Mupondori', url: SITE_URL }],
+};
 ---
 
-<BaseLayout 
+<BaseLayout
   title="Melvin Mupondori · Software Engineer"
   description="Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments, then writes about how they work."
+  structuredData={structuredData}
 >
   <div class="container home-container">
     <div class="route-line main-route"></div>

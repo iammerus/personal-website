@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
+import { person, breadcrumbs, SITE_URL } from '../../lib/schema';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -12,10 +13,17 @@ export async function getStaticPaths() {
     // Generate article number
     const articleNumber = `B-${(sortedPosts.length - index).toString().padStart(3, '0')}`;
     
-    // Find related posts (previous and next in series, or just recent)
-    // Simplified for now: just grab next and previous in timeline if they exist
-    const prev = index > 0 ? sortedPosts[index - 1] : null;
-    const next = index < sortedPosts.length - 1 ? sortedPosts[index + 1] : null;
+    // Prev/next within the same series when the post has one; otherwise date neighbours
+    let prev = index > 0 ? sortedPosts[index - 1] : null;
+    let next = index < sortedPosts.length - 1 ? sortedPosts[index + 1] : null;
+    if (post.data.series) {
+      const seriesPosts = sortedPosts
+        .filter((p) => p.data.series === post.data.series)
+        .sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+      const si = seriesPosts.findIndex((p) => p.id === post.id);
+      prev = si > 0 ? seriesPosts[si - 1] : null;
+      next = si < seriesPosts.length - 1 ? seriesPosts[si + 1] : null;
+    }
     
     return {
       params: { slug: post.id },
@@ -40,12 +48,34 @@ function getReadingTime(body: string) {
 // Prepare OpenGraph metadata
 const ogUrl = new URL(`/blog/${post.id}`, Astro.site);
 const ogImage = post.data.ogImage ? new URL(post.data.ogImage, Astro.site) : new URL(`/og/${post.id}.png`, Astro.site);
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'BlogPosting',
+      headline: post.data.title,
+      description: post.data.description,
+      datePublished: post.data.date.toISOString(),
+      ...(post.data.updated && { dateModified: post.data.updated.toISOString() }),
+      author: person,
+      image: ogImage.toString(),
+      mainEntityOfPage: ogUrl.toString(),
+    },
+    breadcrumbs([
+      { name: 'Home', url: SITE_URL },
+      { name: 'Writing', url: `${SITE_URL}/blog` },
+      { name: post.data.title, url: ogUrl.toString() },
+    ]),
+  ],
+};
 ---
 
-<BaseLayout 
+<BaseLayout
   title={`${post.data.title} · Melvin Mupondori`}
   description={post.data.description}
   image={ogImage.toString()}
+  structuredData={structuredData}
 >
   <article class="article-container container" id="article-content">
     <header class="article-header">
@@ -142,7 +172,6 @@ const ogImage = post.data.ogImage ? new URL(post.data.ogImage, Astro.site) : new
   .article-num {
     padding: 0.125rem 0.5rem;
     border: 1px solid var(--border-color);
-    border-radius: 2px;
   }
 
   .article-header h1 {
@@ -176,8 +205,6 @@ const ogImage = post.data.ogImage ? new URL(post.data.ogImage, Astro.site) : new
 
   .detail-label {
     font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     opacity: 0.7;
   }
 
@@ -311,12 +338,16 @@ const ogImage = post.data.ogImage ? new URL(post.data.ogImage, Astro.site) : new
 </style>
 
 <script>
+  import { track } from '../../lib/analytics';
+
   function setupReadingProgress() {
     const articleContent = document.getElementById('article-content');
     const progressBar = document.getElementById('reading-progress');
-    
+
     if (!articleContent || !progressBar) return;
-    
+
+    let readFired = false;
+
     const updateProgress = () => {
       const rect = articleContent.getBoundingClientRect();
       const windowHeight = window.innerHeight;
@@ -336,6 +367,11 @@ const ogImage = post.data.ogImage ? new URL(post.data.ogImage, Astro.site) : new
       }
       
       progressBar.style.width = `${progress}%`;
+
+      if (progress >= 75 && !readFired) {
+        readFired = true;
+        track('article_read_75');
+      }
     };
     
     window.addEventListener('scroll', updateProgress, { passive: true });

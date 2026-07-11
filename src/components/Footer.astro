@@ -116,6 +116,8 @@ const currentYear = new Date().getFullYear();
 </style>
 
 <script>
+  import { track } from '../lib/analytics';
+
   function updateThemeButtons() {
     const isDark = document.documentElement.hasAttribute('data-theme');
     const onBtn = document.getElementById('theme-toggle-footer-on');
@@ -143,6 +145,7 @@ const currentYear = new Date().getFullYear();
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
         updateThemeButtons();
+        track('theme_changed');
       });
     }
     
@@ -151,6 +154,7 @@ const currentYear = new Date().getFullYear();
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
         updateThemeButtons();
+        track('theme_changed');
       });
     }
     

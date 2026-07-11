@@ -198,10 +198,12 @@ function isActive(path: string) {
 </style>
 
 <script>
+  import { track } from '../lib/analytics';
+
   function setupThemeToggle() {
     const btn = document.getElementById('theme-toggle-header');
     if (!btn) return;
-    
+
     btn.addEventListener('click', () => {
       const isDark = document.documentElement.hasAttribute('data-theme');
       if (isDark) {
@@ -211,6 +213,7 @@ function isActive(path: string) {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
       }
+      track('theme_changed');
     });
   }
 

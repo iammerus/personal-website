@@ -1,12 +1,23 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { person, SITE_URL } from '../../lib/schema';
 
 const allPosts = await getCollection('blog', ({ data }) => {
   return import.meta.env.PROD ? !data.draft : true;
 });
 
 const sortedPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: 'Writing · Melvin Mupondori',
+  url: `${SITE_URL}/blog`,
+  description:
+    'Notes by Melvin Mupondori on software, infrastructure, hardware experiments, mistakes and the process of figuring out how systems work.',
+  author: person,
+};
 
 // Calculate reading time roughly (200 words per minute)
 function getReadingTime(body: string) {
@@ -16,9 +27,10 @@ function getReadingTime(body: string) {
 }
 ---
 
-<BaseLayout 
+<BaseLayout
   title="Writing · Melvin Mupondori"
   description="Notes by Melvin Mupondori on software, infrastructure, hardware experiments, mistakes and the process of figuring out how systems work."
+  structuredData={structuredData}
 >
   <div class="container trace-container">
     <div class="main-trace" id="main-trace"></div>

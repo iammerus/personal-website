@@ -1,10 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { person } from '../lib/schema';
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  mainEntity: person,
+};
 ---
 
-<BaseLayout 
+<BaseLayout
   title="About · Melvin Mupondori"
   description="About Melvin Mupondori, a senior software engineer working across developer platforms, products and the occasional undocumented hardware signal."
+  structuredData={structuredData}
 >
   <div class="container about-container reading-container">
     
@@ -95,7 +103,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <li><span class="link-label">Email:</span> <a href="mailto:hello@mups.co.zw">hello@mups.co.zw</a></li>
           <li><span class="link-label">GitHub:</span> <a href="https://github.com/iammerus" target="_blank" rel="noopener noreferrer">@iammerus</a></li>
           <li><span class="link-label">X:</span> <a href="https://x.com/wezhirawevhu" target="_blank" rel="noopener noreferrer">@wezhirawevhu</a></li>
-          <li><span class="link-label">CV:</span> <a href="/cv.pdf" target="_blank">PDF Download</a></li>
+          <li><span class="link-label">CV:</span> <a href="/resume.pdf" target="_blank">PDF Download</a></li>
         </ul>
       </section>
 

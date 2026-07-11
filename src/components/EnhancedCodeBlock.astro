@@ -108,6 +108,8 @@ const { code, lang = 'text', filename } = Astro.props;
 </style>
 
 <script>
+  import { track } from '../lib/analytics';
+
   function setupCodeBlocks() {
     const blocks = document.querySelectorAll('.enhanced-code-block');
     
@@ -123,6 +125,7 @@ const { code, lang = 'text', filename } = Astro.props;
         
         try {
           await navigator.clipboard.writeText(text.trim());
+          track('code_copied');
           const originalText = copyBtn.textContent;
           copyBtn.textContent = 'copied';
           copyBtn.style.color = 'var(--accent-color)';
