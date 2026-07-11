@@ -1,0 +1,279 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? !data.draft : true;
+});
+
+const sortedPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Calculate reading time roughly (200 words per minute)
+function getReadingTime(body: string) {
+  const words = body.split(/\s+/).length;
+  const minutes = Math.ceil(words / 200);
+  return `${minutes} min`;
+}
+---
+
+<BaseLayout 
+  title="Writing · Melvin Mupondori"
+  description="Notes by Melvin Mupondori on software, infrastructure, hardware experiments, mistakes and the process of figuring out how systems work."
+>
+  <div class="container trace-container">
+    <div class="main-trace" id="main-trace"></div>
+    
+    <header class="trace-header">
+      <h1 class="font-display">Writing</h1>
+      <p class="intro-text">
+        Notes on software, systems, machines,<br/>
+        mistakes and whatever I am currently trying to understand.
+      </p>
+    </header>
+
+    <div class="article-archive">
+      {sortedPosts.map((post, index) => {
+        const articleNumber = `B-${(sortedPosts.length - index).toString().padStart(3, '0')}`;
+        return (
+          <article class="trace-entry">
+            <div class="entry-junction"></div>
+            <div class="entry-connection"></div>
+            
+            <a href={`/blog/${post.id}`} class="entry-content">
+              <div class="entry-number font-utility text-muted">{articleNumber}</div>
+              <h2 class="entry-title font-display">{post.data.title}</h2>
+              <p class="entry-description">{post.data.description}</p>
+              
+              <div class="entry-meta font-utility text-muted">
+                <span class="entry-date">
+                  {post.data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                <span class="meta-spacer"></span>
+                <span class="entry-topic">
+                  {post.data.tags.length > 0 ? post.data.tags[0] : 'notes'} · {getReadingTime(post.body || '')}
+                </span>
+              </div>
+            </a>
+          </article>
+        );
+      })}
+    </div>
+
+    <footer class="trace-footer">
+      <div class="entry-junction end-junction"></div>
+      <p>That is everything for now.</p>
+      <p>
+        Follow future entries through <a href="/rss.xml" class="rss-link">RSS. <span class="rss-node">○</span></a>
+      </p>
+    </footer>
+  </div>
+</BaseLayout>
+
+<style>
+  .trace-container {
+    position: relative;
+    padding-left: 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .main-trace {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 2rem;
+    width: 1px;
+    background-color: var(--border-color);
+    transition: background-color 300ms ease;
+  }
+  
+  .trace-container.scrolled .main-trace {
+    background-color: var(--accent-color);
+  }
+
+  .trace-header {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+
+  .trace-header h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .intro-text {
+    font-size: 1.125rem;
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+
+  .article-archive {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
+  .trace-entry {
+    position: relative;
+  }
+
+  .entry-junction {
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 8px;
+    height: 8px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    transition: background-color 200ms ease, border-color 200ms ease;
+    z-index: 2;
+  }
+
+  .entry-connection {
+    position: absolute;
+    left: -2rem;
+    top: calc(0.5rem + 3px);
+    width: 0;
+    height: 1px;
+    background-color: var(--accent-color);
+    transition: width 200ms ease;
+    z-index: 1;
+  }
+
+  .entry-content {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    max-width: 640px;
+    padding-left: 1rem;
+    transition: transform 200ms ease;
+  }
+
+  .entry-content:hover,
+  .entry-content:focus {
+    text-decoration: none;
+    outline: none;
+  }
+
+  .entry-content:hover .entry-title,
+  .entry-content:focus .entry-title {
+    color: var(--accent-color);
+  }
+
+  .trace-entry:hover .entry-junction,
+  .trace-entry:focus-within .entry-junction {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+
+  .trace-entry:hover .entry-connection,
+  .trace-entry:focus-within .entry-connection {
+    width: 1rem;
+  }
+
+  .entry-number {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .entry-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    transition: color 200ms ease;
+  }
+
+  .entry-description {
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+  }
+
+  .entry-meta {
+    display: flex;
+    font-size: 0.875rem;
+  }
+  
+  .meta-spacer {
+    flex-grow: 1;
+  }
+
+  .trace-footer {
+    position: relative;
+    margin-top: 6rem;
+    padding-bottom: 4rem;
+    padding-left: 1rem;
+    color: var(--text-muted);
+  }
+
+  .end-junction {
+    top: 0;
+    border-color: var(--text-muted);
+    background-color: transparent;
+  }
+
+  .rss-link {
+    color: var(--text-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .rss-link:hover {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+  
+  .rss-node {
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: color 200ms ease;
+  }
+
+  .rss-link:hover .rss-node {
+    color: var(--accent-color);
+    content: "●";
+  }
+
+  @media (max-width: 768px) {
+    .trace-container {
+      padding-left: 2rem;
+    }
+    
+    .main-trace {
+      left: 1rem;
+    }
+    
+    .entry-junction {
+      left: -1rem;
+    }
+    
+    .entry-connection {
+      left: -1rem;
+    }
+    
+    .entry-content {
+      padding-left: 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  function setupTraceScroll() {
+    const container = document.querySelector('.trace-container');
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        container.classList.add('scrolled');
+      } else {
+        container.classList.remove('scrolled');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+  }
+
+  document.addEventListener('astro:page-load', setupTraceScroll);
+</script>

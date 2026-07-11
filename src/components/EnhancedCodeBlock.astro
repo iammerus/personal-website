@@ -1,0 +1,142 @@
+---
+interface Props {
+  code?: string;
+  lang?: string;
+  filename?: string;
+}
+
+const { code, lang = 'text', filename } = Astro.props;
+---
+
+<div class="enhanced-code-block">
+  <div class="code-header">
+    <div class="code-info">
+      {filename && <span class="code-filename font-utility">{filename}</span>}
+      <span class="code-lang font-utility text-muted">{lang}</span>
+    </div>
+    <button class="copy-btn font-utility text-muted" aria-label="Copy code">copy</button>
+  </div>
+  <div class="code-content-wrapper">
+    <!-- If code is passed via prop, render it in pre/code. Otherwise render slot (which Astro might have already wrapped in pre) -->
+    {code ? (
+      <pre class={`language-${lang}`}><code>{code}</code></pre>
+    ) : (
+      <div class="slot-wrapper">
+        <slot />
+      </div>
+    )}
+  </div>
+</div>
+
+<style>
+  .enhanced-code-block {
+    margin: 2rem -1rem; /* Break out slightly on mobile, reset on desktop */
+    border: 1px solid var(--border-color);
+    background-color: var(--c-bone);
+    border-radius: 0;
+  }
+  
+  :root[data-theme='dark'] .enhanced-code-block {
+    background-color: var(--c-bone);
+  }
+
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+  }
+
+  .code-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.75rem;
+  }
+
+  .code-filename {
+    color: var(--text-color);
+  }
+
+  .copy-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: color 150ms ease;
+  }
+
+  .copy-btn:hover, .copy-btn:focus {
+    color: var(--accent-color);
+    outline: none;
+  }
+
+  .code-content-wrapper {
+    position: relative;
+    overflow-x: auto; /* Horizontal scrolling */
+    padding: 1rem;
+  }
+  
+  /* Ensure Astro's Shiki generated pre tags inherit correctly without internal padding */
+  .code-content-wrapper :global(pre) {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    font-family: var(--font-utility);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  /* Line highlighting support (if classes applied by Shiki/Rehype) */
+  .code-content-wrapper :global(.highlighted-line) {
+    background-color: var(--border-color);
+    display: inline-block;
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .enhanced-code-block {
+      margin: 2.5rem 0;
+      /* Code may extend wider than prose according to spec */
+      width: calc(100% + 4rem);
+      transform: translateX(-2rem);
+    }
+  }
+</style>
+
+<script>
+  function setupCodeBlocks() {
+    const blocks = document.querySelectorAll('.enhanced-code-block');
+    
+    blocks.forEach(block => {
+      const copyBtn = block.querySelector('.copy-btn');
+      const codeWrapper = block.querySelector('.code-content-wrapper');
+      
+      if (!copyBtn || !codeWrapper) return;
+      
+      copyBtn.addEventListener('click', async () => {
+        // Find text content
+        const text = codeWrapper.textContent || '';
+        
+        try {
+          await navigator.clipboard.writeText(text.trim());
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = 'copied';
+          copyBtn.style.color = 'var(--accent-color)';
+          
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.style.color = '';
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy', err);
+        }
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupCodeBlocks);
+</script>

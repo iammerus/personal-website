@@ -1,45 +1,287 @@
 ---
-import DefaultLayout from '@layouts/DefaultLayout.astro'
-import HeroSection from '@components/vue/HeroSection.vue'
-import SkillsShowcase from '@components/vue/SkillsShowcase.vue'
-import ProjectsShowcase from '@components/vue/ProjectsShowcase.vue'
-import { loadResumeData, loadLinksData } from '../utils/resumeParser'
-import fs from 'fs'
-import path from 'path'
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
 
-// Load resume and links data from JSON files
-const resumeJsonPath = path.join(process.cwd(), 'data/resume.json')
-const linksJsonPath = path.join(process.cwd(), 'data/links.json')
+const allPosts = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? !data.draft : true;
+});
 
-let resumeData;
-let linksData;
-
-try {
-  const resumeContent = fs.readFileSync(resumeJsonPath, 'utf-8')
-  const linksContent = fs.readFileSync(linksJsonPath, 'utf-8')
-  resumeData = JSON.parse(resumeContent)
-  linksData = JSON.parse(linksContent)
-} catch (error) {
-  console.error('Failed to load JSON data:', error)
-  // Fallback to utility functions
-  resumeData = loadResumeData()
-  linksData = loadLinksData()
-}
+// Sort by date descending
+const recentPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3);
 ---
 
-<DefaultLayout title="Melvin Mupondori - Senior Full-Stack Engineer" description="Senior Full-Stack Engineer with 5+ years of experience building scalable web solutions. Specializing in React, Vue.js, Node.js, and cloud architecture.">
-  <!-- Hero Section -->
-  <HeroSection
-    client:load
-    name={resumeData.personalInfo.name}
-    title={resumeData.personalInfo.title}
-    description={resumeData.profile.substring(0, 180) + '...'}
-  />
+<BaseLayout 
+  title="Melvin Mupondori · Software Engineer"
+  description="Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments, then writes about how they work."
+>
+  <div class="container home-container">
+    <div class="route-line main-route"></div>
+
+    <!-- Section 1: Introduction -->
+    <section class="intro-section">
+      <h1 class="thesis-line">
+        I build software, tinker with hardware, and spend an unreasonable amount of time figuring out how things work.
+      </h1>
+      <div class="route-junction"></div>
+    </section>
+
+    <!-- Section 2: Now -->
+    <section class="now-section">
+      <div class="now-grid">
+        <div class="now-main">
+          <h2 class="font-utility text-muted section-label">Currently</h2>
+          <p>
+            At Kubermatic, I work on KDP, building developer-platform tooling around Kubernetes. Outside work, I'm building ZenHost and learning everything that comes with turning hosting into a product.
+          </p>
+        </div>
+        <div class="now-side">
+          <h2 class="font-utility text-muted section-label">Also tinkering with</h2>
+          <p>
+            Listening to a BMW E87's CAN bus with an ESP32 and MCP2551, and pulling RS485 data from my solar inverter into Home Assistant.
+          </p>
+          <!-- Abstract hardware schematic -->
+          <svg class="abstract-diagram" width="120" height="40" viewBox="0 0 120 40" fill="none" stroke="var(--border-color)">
+            <rect x="0" y="10" width="20" height="20" />
+            <line x1="20" y1="20" x2="50" y2="20" />
+            <rect x="50" y="10" width="30" height="20" />
+            <line x1="80" y1="20" x2="110" y2="20" />
+            <circle cx="115" cy="20" r="5" />
+          </svg>
+        </div>
+      </div>
+      <div class="route-junction"></div>
+    </section>
+
+    <!-- Section 3: Something I'm proud of -->
+    <section class="proud-section">
+      <h2 class="font-utility text-muted section-label">Something I'm proud of</h2>
+      <a href="/work/zenhost" class="project-entry">
+        <div class="project-info">
+          <h3 class="project-name font-display">ZenHost</h3>
+          <p class="project-premise">
+            A hosting platform I started because deploying and managing ordinary applications still involves too many unrelated tools and too much hidden knowledge.
+          </p>
+          <div class="project-meta font-utility text-muted">
+            <span>Founder and engineer</span>
+            <span class="meta-separator">·</span>
+            <span>Building</span>
+          </div>
+        </div>
+        <div class="project-visual">
+          <!-- Placeholder for screenshot crop -->
+          <div class="screenshot-placeholder">
+            <div class="placeholder-content">
+              <span class="font-utility text-muted">ZenHost Interface Crop</span>
+            </div>
+          </div>
+        </div>
+      </a>
+      <div class="route-junction"></div>
+    </section>
+
+    <!-- Section 4: Recent writing -->
+    <section class="writing-section">
+      <h2 class="font-utility text-muted section-label">Recent writing</h2>
+      <div class="article-list">
+        {recentPosts.length > 0 ? recentPosts.map((post, index) => (
+          <a href={`/blog/${post.id}`} class="article-row">
+            <div class="article-num font-utility text-muted">B-{(recentPosts.length - index).toString().padStart(3, '0')}</div>
+            <div class="article-title">{post.data.title}</div>
+            <div class="article-date font-utility text-muted">
+              {post.data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </div>
+            <div class="article-topic font-utility text-muted">
+              {post.data.tags.length > 0 ? post.data.tags[0] : 'notes'}
+            </div>
+          </a>
+        )) : (
+          <div class="font-utility text-muted py-4">Logs are currently empty.</div>
+        )}
+      </div>
+      <div class="route-junction end-junction"></div>
+    </section>
+
+  </div>
+</BaseLayout>
+
+<style>
+  .home-container {
+    position: relative;
+    padding-left: 3rem; /* Space for the route line */
+  }
+
+  .main-route {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 2rem;
+    width: 1px;
+    background-color: var(--border-color);
+  }
+
+  .route-junction {
+    position: absolute;
+    left: -1rem; /* -3rem from container + 2rem line pos = -1rem relative */
+    width: 6px;
+    height: 6px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
   
-  <!-- Skills Section -->
-  <SkillsShowcase client:load />
+  .intro-section .route-junction { top: 2rem; }
+  .now-section .route-junction { top: 3rem; }
+  .proud-section .route-junction { top: 3rem; }
+  .writing-section .route-junction { top: 3rem; }
   
-  <!-- Projects Section -->
-  <ProjectsShowcase client:load />
-  
-</DefaultLayout>
+  .end-junction {
+    bottom: -4rem;
+    top: auto !important;
+  }
+
+  section {
+    position: relative;
+    padding: 3rem 0;
+  }
+
+  .intro-section {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+
+  .thesis-line {
+    font-size: 1.5rem;
+    line-height: 1.5;
+    max-width: 680px;
+    font-weight: 700;
+  }
+
+  .section-label {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  .now-grid {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 4rem;
+    max-width: 900px;
+  }
+
+  .abstract-diagram {
+    margin-top: 1.5rem;
+    opacity: 0.7;
+  }
+
+  .project-entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    color: inherit;
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+    transition: border-color 200ms ease;
+  }
+
+  .project-entry:hover {
+    text-decoration: none;
+    border-color: var(--accent-color);
+  }
+
+  .project-name {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+  }
+
+  .project-premise {
+    margin-bottom: 2rem;
+    color: var(--text-color);
+  }
+
+  .project-meta {
+    font-size: 0.875rem;
+  }
+
+  .meta-separator {
+    margin: 0 0.5rem;
+  }
+
+  .screenshot-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    background-color: var(--c-bone);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+  }
+
+  :root[data-theme='dark'] .screenshot-placeholder {
+    background-color: var(--c-bone); /* Uses night bone */
+  }
+
+  .article-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .article-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 2rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    color: inherit;
+    align-items: center;
+  }
+
+  .article-row:hover {
+    text-decoration: none;
+    color: var(--accent-color);
+  }
+
+  .article-row:hover .article-num,
+  .article-row:hover .article-date,
+  .article-row:hover .article-topic {
+    color: var(--accent-color);
+  }
+
+  .article-title {
+    font-weight: 500;
+  }
+
+  @media (max-width: 900px) {
+    .now-grid, .project-entry {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    
+    .article-row {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      padding: 1.5rem 0;
+    }
+    
+    .article-num { display: none; }
+    
+    .article-topic {
+      grid-row: 3;
+      grid-column: 1;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .home-container {
+      padding-left: 2rem;
+    }
+    .main-route {
+      left: 1rem;
+    }
+    .route-junction {
+      left: -1rem;
+    }
+  }
+</style>

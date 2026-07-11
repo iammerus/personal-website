@@ -1,0 +1,218 @@
+---
+const pathname = Astro.url.pathname;
+
+const navItems = [
+  { label: 'Work', path: '/work' },
+  { label: 'Writing', path: '/blog' },
+  { label: 'About', path: '/about' },
+];
+
+function isActive(path: string) {
+  if (path === '/' && pathname !== '/') return false;
+  return pathname.startsWith(path) && (path !== '/' || pathname === '/');
+}
+---
+
+<header class="masthead">
+  <div class="masthead-container container">
+    <div class="masthead-left">
+      <a href="/" class="brand-link" aria-label="Home">
+        <svg class="circuit-mark" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="4" cy="12" r="2" />
+          <line x1="6" y1="12" x2="12" y2="12" />
+          <circle cx="14" cy="12" r="2" />
+          <line x1="16" y1="12" x2="20" y2="8" />
+          <circle cx="20" cy="6" r="2" />
+        </svg>
+      </a>
+      <div class="masthead-identity">
+        <div class="name font-display">Melvin Mupondori</div>
+        <div class="title font-utility text-muted">Senior software engineer · platform and product</div>
+      </div>
+    </div>
+    
+    <nav class="masthead-nav">
+      <ul>
+        {navItems.map(item => (
+          <li>
+            <a href={item.path} class={isActive(item.path) ? 'active' : ''}>
+              <span class="nav-node"></span>
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    
+    <div class="masthead-right">
+      <button id="theme-toggle-header" class="theme-toggle" aria-label="Toggle theme">
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="progress-trace" id="reading-progress"></div>
+</header>
+
+<style>
+  .masthead {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    position: relative;
+    view-transition-name: masthead;
+  }
+  
+  .masthead-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .masthead-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .brand-link {
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    view-transition-name: circuit-mark;
+  }
+  
+  .brand-link:hover {
+    color: var(--accent-color);
+  }
+  
+  .masthead-identity .name {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  
+  .masthead-identity .title {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  
+  .masthead-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .masthead-nav a {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+  }
+  
+  .nav-node {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+  
+  .masthead-nav a:hover, .masthead-nav a:focus {
+    text-decoration: none;
+    color: var(--accent-color);
+  }
+  
+  .masthead-nav a.active .nav-node,
+  .masthead-nav a:hover .nav-node,
+  .masthead-nav a:focus .nav-node {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+  
+  .masthead-nav a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 14px;
+    width: 1rem;
+    height: 1px;
+    background-color: var(--accent-color);
+  }
+  
+  .masthead-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .theme-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 150ms ease;
+  }
+  
+  .theme-toggle:hover {
+    color: var(--text-color);
+  }
+  
+  .progress-trace {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    height: 1px;
+    background-color: var(--accent-color);
+    width: 0%;
+    transition: width 100ms ease;
+  }
+  
+  @media (max-width: 768px) {
+    .masthead-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .masthead-nav {
+      width: 100%;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+    }
+    
+    .masthead-right {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  function setupThemeToggle() {
+    const btn = document.getElementById('theme-toggle-header');
+    if (!btn) return;
+    
+    btn.addEventListener('click', () => {
+      const isDark = document.documentElement.hasAttribute('data-theme');
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupThemeToggle);
+</script>

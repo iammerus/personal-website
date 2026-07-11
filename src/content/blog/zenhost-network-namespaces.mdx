@@ -1,0 +1,68 @@
+---
+title: "Network namespaces, port conflicts and the first wrong assumption"
+description: "A ZenHost engineering post about assuming applications could simply own the ports they requested, and what happened once multiple tenants entered the picture."
+date: 2026-07-12
+tags: ["infrastructure", "networking"]
+relatesTo: "zenhost"
+---
+import EnhancedCodeBlock from '../../components/EnhancedCodeBlock.astro';
+
+When I started building ZenHost, I wanted to keep things simple. The whole point was to avoid the complexity of Kubernetes for workloads that didn't need it. My initial thought process went something like this: *If a user wants to run a web app, they just tell me the port, and I'll bind the container to that port on the host.*
+
+It was a beautifully naive assumption.
+
+### The collision
+
+Everything worked perfectly for the first tenant. They deployed a Node.js app on port `3000`. The reverse proxy routed traffic to `127.0.0.1:3000`. Fast, clean, understandable.
+
+Then the second tenant arrived, and they also wanted port `3000`.
+
+<EnhancedCodeBlock lang="bash" filename="docker-compose.yml">
+{`version: '3'
+services:
+  app-tenant-a:
+    image: my-node-app
+    ports:
+      - "3000:3000" # All good
+
+  app-tenant-b:
+    image: my-other-node-app
+    ports:
+      - "3000:3000" # Error: port already allocated
+`}
+</EnhancedCodeBlock>
+
+I had accidentally built a system where port numbers were a global, scarce resource. I was essentially recreating the exact problem that caused shared hosting to become a nightmare in the late 90s, just with containers.
+
+### Relearning network namespaces
+
+The fix, of course, was to embrace Linux network namespaces fully, rather than fighting them by binding everything to the host network interface.
+
+Instead of letting containers dictate the host port, ZenHost needed to dynamically allocate an ephemeral port on the host side, or better yet, route traffic through an internal bridge network directly to the container's IP and private port.
+
+<EnhancedCodeBlock lang="go" filename="scheduler.go">
+{`// The wrong way: trusting the requested port blindly
+func allocatePort(requestedPort int) error {
+    if isPortInUse(requestedPort) {
+        return fmt.Errorf("port %d is already in use by another tenant", requestedPort)
+    }
+    // ...
+}
+
+// The better way: internal bridge routing
+func setupTenantRouting(containerIP string, internalPort int) {
+    // The reverse proxy dynamically maps the tenant's domain
+    // to the container's internal IP on the bridge network.
+    // The host ports are never exposed or conflicted.
+    proxy.RegisterRoute(tenantDomain, fmt.Sprintf("%s:%d", containerIP, internalPort))
+}
+`}
+</EnhancedCodeBlock>
+
+### What changed
+
+By shifting the routing logic entirely to the reverse proxy and an internal bridge network, the applications could believe they owned whatever port they wanted. Tenant A could run on `3000`, Tenant B could run on `3000`, and the host machine didn't care.
+
+It was a classic example of learning a distributed systems lesson the hard way. The abstraction I thought was making things simpler (just bind the port!) was actually tightly coupling the tenants to the underlying hardware in a way that couldn't scale past one user.
+
+Next up: trying to figure out how to do tenant isolation without accidentally building Kubernetes again.

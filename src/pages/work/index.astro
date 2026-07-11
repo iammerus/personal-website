@@ -1,0 +1,145 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const workProjects = await getCollection('work');
+const sortedProjects = workProjects.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout 
+  title="Work · Melvin Mupondori"
+  description="Products and systems built by Melvin Mupondori, beginning with ZenHost, a hosting platform shaped by real deployment and infrastructure problems."
+>
+  <div class="container work-container">
+    
+    <header class="work-header">
+      <h1 class="font-display">Work</h1>
+      <p class="intro-text">
+        Things I've built, owned, or kept thinking about long after the first version worked.
+      </p>
+    </header>
+
+    <div class="work-list">
+      {sortedProjects.map(project => (
+        <a href={`/work/${project.id}`} class="project-entry">
+          <div class="project-info">
+            <h2 class="project-name font-display">{project.data.title}</h2>
+            <p class="project-premise">
+              {project.data.description}
+            </p>
+            <div class="project-meta font-utility text-muted">
+              <span>{project.data.role}</span>
+              <span class="meta-separator">·</span>
+              <span>{project.data.status}</span>
+            </div>
+          </div>
+          <div class="project-visual">
+            <div class="screenshot-placeholder">
+              <div class="placeholder-content">
+                <span class="font-utility text-muted">{project.data.title} Interface Crop</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+
+  </div>
+</BaseLayout>
+
+<style>
+  .work-container {
+    padding-top: 2rem;
+    padding-bottom: 6rem;
+    max-width: var(--max-width);
+  }
+
+  .work-header {
+    margin-bottom: 5rem;
+    max-width: 680px;
+  }
+
+  .work-header h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .intro-text {
+    font-size: 1.125rem;
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+
+  .work-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
+  .project-entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    color: inherit;
+    padding: 3rem;
+    border: 1px solid var(--border-color);
+    transition: border-color 200ms ease;
+  }
+
+  .project-entry:hover {
+    text-decoration: none;
+    border-color: var(--accent-color);
+  }
+
+  .project-name {
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    transition: color 200ms ease;
+  }
+
+  .project-entry:hover .project-name {
+    color: var(--accent-color);
+  }
+
+  .project-premise {
+    margin-bottom: 3rem;
+    color: var(--text-color);
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+
+  .project-meta {
+    font-size: 0.875rem;
+  }
+
+  .meta-separator {
+    margin: 0 0.5rem;
+  }
+
+  .screenshot-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    background-color: var(--c-bone);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+  }
+
+  :root[data-theme='dark'] .screenshot-placeholder {
+    background-color: var(--c-bone);
+  }
+
+  @media (max-width: 900px) {
+    .project-entry {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      padding: 2rem;
+    }
+    
+    .screenshot-placeholder {
+      min-height: 200px;
+    }
+  }
+</style>

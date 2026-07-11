@@ -1,16 +1,15 @@
 import { defineConfig } from 'astro/config'
 import mdx from '@astrojs/mdx'
-import vue from '@astrojs/vue'
 import compress from 'astro-compress'
 import icon from 'astro-icon'
-import tailwindcss from '@tailwindcss/vite'
+import sitemap from '@astrojs/sitemap'
 import { fileURLToPath } from 'url'
 
 // https://astro.build/config
 export default defineConfig({
   compressHTML: true,
   site: 'https://mups.co.zw',
-  integrations: [mdx(), vue(), icon(), compress()],
+  integrations: [mdx(), icon(), compress(), sitemap()],
   build: {
     assets: '_astro'
   },
@@ -24,7 +23,6 @@ export default defineConfig({
         },
       },
     },
-    plugins: [tailwindcss()],
     ssr: {
       noExternal: ['gsap']
     },

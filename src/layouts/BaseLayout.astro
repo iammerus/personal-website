@@ -1,0 +1,98 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import Masthead from '../components/Masthead.astro';
+import Footer from '../components/Footer.astro';
+import SEO from '../components/SEO.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { 
+  title = "Melvin Mupondori", 
+  description = "Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments.",
+  image = "/og-image.png"
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <SEO 
+      title={title}
+      description={description}
+      image={image}
+    />
+    
+    <!-- Umami Analytics Placeholder -->
+    <script async src="https://analytics.umami.is/script.js" data-website-id="YOUR-UMAMI-WEBSITE-ID" data-domains="mups.co.zw"></script>
+    
+    <!-- Theme script runs early to prevent FOUC -->
+    <script is:inline>
+      const theme = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+          return localStorage.getItem('theme');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      })();
+      
+      if (theme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+      window.localStorage.setItem('theme', theme);
+    </script>
+    
+    <ClientRouter />
+  </head>
+  <body>
+    <div id="stars-container"></div>
+    <Masthead />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    
+    <script>
+      // Star generation for night mode
+      function generateStars() {
+        const container = document.getElementById('stars-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        const starCount = 50; // Sparse
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement('div');
+          const size = Math.random() * 2 + 1;
+          star.style.position = 'absolute';
+          star.style.left = `${Math.random() * 100}%`;
+          star.style.top = `${Math.random() * 100}%`;
+          star.style.width = `${size}px`;
+          star.style.height = `${size}px`;
+          star.style.backgroundColor = 'var(--c-ink)';
+          star.style.borderRadius = '50%';
+          star.style.opacity = `${Math.random() * 0.5 + 0.1}`;
+          container.appendChild(star);
+        }
+      }
+      
+      document.addEventListener('astro:page-load', () => {
+        generateStars();
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  main {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+</style>

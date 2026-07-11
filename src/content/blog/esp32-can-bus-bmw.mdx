@@ -1,0 +1,49 @@
+---
+title: "Listening to a BMW E87 with an ESP32 and MCP2551"
+description: "A practical record of connecting to the CAN bus, capturing traffic, distinguishing noise from useful signals and working out what the car is saying."
+date: 2026-07-10
+tags: ["hardware", "reverse-engineering"]
+---
+import EnhancedCodeBlock from '../../components/EnhancedCodeBlock.astro';
+
+Modern cars are essentially rolling networks. Every time you press a button, turn the steering wheel, or open a door, a message is broadcast across a Controller Area Network (CAN) bus.
+
+I wanted to see what my BMW E87 was thinking.
+
+### The hardware
+
+To tap into the CAN bus, you need two things: something to read the physical electrical signals, and something to process the protocol. I used:
+- An ESP32 microcontroller
+- An MCP2551 CAN transceiver module
+
+### Finding the bus
+
+The easiest place to find the CAN bus on an E87 is the OBD-II port under the steering wheel, but that's often isolated behind a gateway that only wakes up for diagnostic requests. To hear the "chatter", I tapped directly into the K-CAN (Karosserie-CAN, or body CAN) behind the radio.
+
+<EnhancedCodeBlock lang="cpp" filename="can_reader.cpp">
+{`#include <ESP32CAN.h>
+#include <CAN_config.h>
+
+CAN_device_t CAN_cfg;
+
+void setup() {
+    Serial.begin(115200);
+    
+    // Set CAN pins
+    CAN_cfg.tx_pin_id = GPIO_NUM_5;
+    CAN_cfg.rx_pin_id = GPIO_NUM_4;
+    
+    // BMW K-CAN runs at 100kbps
+    CAN_cfg.speed = CAN_SPEED_100KBPS;
+    CAN_cfg.rx_queue = xQueueCreate(10, sizeof(CAN_frame_t));
+    
+    ESP32Can.CANInit();
+}
+`}
+</EnhancedCodeBlock>
+
+### The noise
+
+When I finally got it connected and powered up, the terminal was immediately flooded. The car generates thousands of messages a second even when the engine is off but the car is awake. 
+
+The next step is figuring out how to filter this noise and isolate specific IDs, like the steering wheel buttons, to eventually control an aftermarket head unit. More on that in the next post.

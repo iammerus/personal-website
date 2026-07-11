@@ -1,0 +1,232 @@
+---
+interface Props {
+  title?: string;
+  id?: string;
+}
+
+const { title = "System Architecture", id = "arch-graph-" + Math.random().toString(36).substr(2, 9) } = Astro.props;
+---
+
+<div class="architecture-graph" id={id}>
+  <div class="graph-header font-utility text-muted">{title}</div>
+  <div class="graph-container">
+    <svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet" aria-label={title}>
+      <!-- Definitions -->
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border-color)" />
+        </marker>
+        <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent-color)" />
+        </marker>
+      </defs>
+
+      <!-- 1. Primary Route (Lines) -->
+      <g class="graph-routes">
+        <path d="M 100 200 L 250 200" class="primary-route" />
+        <path d="M 350 200 L 500 200" class="primary-route" />
+        <path d="M 600 200 L 750 200" class="primary-route" marker-end="url(#arrow)" />
+        <path d="M 300 250 L 300 320 L 500 320" class="primary-route" />
+      </g>
+
+      <!-- 3. Secondary Connections -->
+      <g class="graph-secondary">
+        <path d="M 550 250 L 550 320 L 700 320" stroke-dasharray="4 4" />
+        <path d="M 250 100 L 700 100 L 700 150" stroke-dasharray="4 4" />
+      </g>
+
+      <!-- 2. Nodes (Boxes/Circles) -->
+      <g class="graph-nodes">
+        <!-- Client -->
+        <rect x="50" y="175" width="50" height="50" rx="0" />
+        <!-- Proxy -->
+        <rect x="250" y="150" width="100" height="100" rx="0" />
+        <!-- App A -->
+        <rect x="500" y="150" width="100" height="100" rx="0" />
+        <!-- App B -->
+        <rect x="500" y="270" width="100" height="100" rx="0" />
+        <!-- DB -->
+        <circle cx="750" cy="200" r="30" />
+      </g>
+
+      <!-- 4. Labels -->
+      <g class="graph-labels font-utility">
+        <text x="75" y="165" text-anchor="middle">Client</text>
+        <text x="300" y="205" text-anchor="middle">Reverse Proxy</text>
+        <text x="550" y="205" text-anchor="middle">App A (Tenant)</text>
+        <text x="550" y="325" text-anchor="middle">App B (Tenant)</text>
+        <text x="750" y="160" text-anchor="middle">DB</text>
+        
+        <text x="175" y="190" text-anchor="middle" class="small-label">HTTPS</text>
+        <text x="425" y="190" text-anchor="middle" class="small-label">Bridge net</text>
+        <text x="400" y="310" text-anchor="middle" class="small-label">Bridge net</text>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<style>
+  .architecture-graph {
+    margin: 3rem 0;
+    border: 1px solid var(--border-color);
+    background-color: var(--c-bone);
+  }
+
+  :root[data-theme='dark'] .architecture-graph {
+    background-color: var(--c-bone);
+  }
+
+  .graph-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    font-size: 0.75rem;
+  }
+
+  .graph-container {
+    padding: 2rem;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  svg {
+    width: 100%;
+    height: auto;
+    min-width: 600px;
+  }
+
+  /* Base styles for elements */
+  .graph-routes path {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 2;
+  }
+
+  .graph-secondary path {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1;
+  }
+
+  .graph-nodes rect, .graph-nodes circle {
+    fill: var(--bg-color);
+    stroke: var(--border-color);
+    stroke-width: 2;
+  }
+
+  .graph-labels text {
+    fill: var(--text-color);
+    font-size: 12px;
+  }
+
+  .graph-labels .small-label {
+    fill: var(--text-muted);
+    font-size: 10px;
+  }
+
+  /* No JS fallback state */
+  .no-js .graph-routes path,
+  .no-js .graph-secondary path,
+  .no-js .graph-nodes rect,
+  .no-js .graph-nodes circle,
+  .no-js .graph-labels text {
+    opacity: 1 !important;
+    stroke-dashoffset: 0 !important;
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .graph-routes path,
+    .graph-secondary path,
+    .graph-nodes rect,
+    .graph-nodes circle,
+    .graph-labels text {
+      opacity: 1 !important;
+      stroke-dashoffset: 0 !important;
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  // Dynamic import of GSAP only on the client
+  async function animateGraph() {
+    // Check reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    try {
+      const { gsap } = await import('gsap');
+      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
+      
+      gsap.registerPlugin(ScrollTrigger);
+
+      const graphs = document.querySelectorAll('.architecture-graph');
+      
+      graphs.forEach(graph => {
+        const id = graph.getAttribute('id');
+        const routes = graph.querySelectorAll('.graph-routes path');
+        const nodes = graph.querySelectorAll('.graph-nodes rect, .graph-nodes circle');
+        const secondary = graph.querySelectorAll('.graph-secondary path');
+        const labels = graph.querySelectorAll('.graph-labels text');
+
+        // Setup initial state
+        gsap.set([nodes, secondary, labels], { opacity: 0 });
+        
+        routes.forEach(route => {
+          const length = (route as SVGPathElement).getTotalLength();
+          gsap.set(route, { 
+            strokeDasharray: length, 
+            strokeDashoffset: length 
+          });
+        });
+
+        // Create animation timeline
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: graph,
+            start: "top 80%",
+            once: true
+          }
+        });
+
+        // 1. Primary route
+        tl.to(routes, {
+          strokeDashoffset: 0,
+          duration: 1,
+          ease: "power2.inOut",
+          stagger: 0.1
+        })
+        // 2. Nodes
+        .to(nodes, {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power1.out",
+          stagger: 0.1
+        }, "-=0.2")
+        // 3. Secondary connections
+        .to(secondary, {
+          opacity: 0.5, // they are muted
+          duration: 0.5,
+          ease: "power1.out"
+        }, "-=0.2")
+        // 4. Labels
+        .to(labels, {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power1.out"
+        }, "-=0.2");
+      });
+    } catch (e) {
+      console.warn("GSAP animation failed or skipped", e);
+      // Ensure elements are visible if JS fails halfway
+      const elements = document.querySelectorAll('.graph-routes path, .graph-secondary path, .graph-nodes rect, .graph-nodes circle, .graph-labels text');
+      elements.forEach((el: any) => {
+        el.style.opacity = '1';
+        el.style.strokeDashoffset = '0';
+      });
+    }
+  }
+
+  document.addEventListener('astro:page-load', animateGraph);
+</script>
