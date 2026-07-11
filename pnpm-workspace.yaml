@@ -1,3 +1,12 @@
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  sharp: true
+minimumReleaseAgeExclude:
+  - '@eslint/eslintrc@3.3.6'
+  - '@eslint/js@9.39.5'
+  - eslint@9.39.5
+  - sanitize-html@2.17.6
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@tailwindcss/oxide'
