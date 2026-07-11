@@ -34,6 +34,7 @@ const work = defineCollection({
     role: z.string(),
     stack: z.array(z.string()),
     status: z.string(),
+    started: z.string().optional(), // e.g. "2026" — shown in the stamp strip
     metrics: z.string().optional(),
     repository: z.string().url().optional(),
     liveUrl: z.string().url().optional(),
