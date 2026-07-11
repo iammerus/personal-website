@@ -3,24 +3,28 @@ import satori from 'satori';
 import { html } from 'satori-html';
 import { Resvg } from '@resvg/resvg-js';
 import fs from 'fs/promises';
-import { fileURLToPath } from 'url';
 import path from 'path';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  return posts.map(post => ({
+  // Mirror src/pages/blog/index.astro: sort date-descending, number from the bottom up
+  const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return sortedPosts.map((post, index) => ({
     params: { slug: post.id },
-    props: { post },
+    props: {
+      post,
+      articleNumber: `B-${(sortedPosts.length - index).toString().padStart(3, '0')}`,
+    },
   }));
 }
 
 export const GET = async ({ props }) => {
-  const { post } = props;
+  const { post, articleNumber } = props;
   
   // Provide basic deterministic shapes based on the slug
   const hash = post.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const routeShapes = [
-    '<line x1="200" y1="315" x2="1000" y2="315" stroke="#DADBD2" stroke-width="2" />',
+    '<line x1="200" y1="315" x2="1000" y2="315" stroke="#6B6D62" stroke-width="2" />',
     '<circle cx="200" cy="315" r="10" fill="#1E211B" stroke="#DADBD2" stroke-width="2" />',
     '<circle cx="1000" cy="315" r="10" fill="#1E211B" stroke="#DADBD2" stroke-width="2" />',
     `<path d="M 400 315 L 400 ${hash % 2 === 0 ? 150 : 480} L 800 ${hash % 2 === 0 ? 150 : 480} L 800 315" fill="none" stroke="#2F6B5E" stroke-width="2" />`,
@@ -28,32 +32,25 @@ export const GET = async ({ props }) => {
     `<circle cx="800" cy="315" r="5" fill="#2F6B5E" />`
   ].join('');
 
-  // Use JetBrains Mono for OG image (Requires actual font file in production, 
-  // we will load it from node_modules/@fontsource/jetbrains-mono/files)
-  
-  let fontData;
-  try {
-    const fontPath = path.resolve(
-      fileURLToPath(import.meta.url),
-      '../../../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff'
-    );
-    fontData = await fs.readFile(fontPath);
-  } catch (e) {
-    console.error('Could not load font for OG generation', e);
-    // Fallback empty font buffer if woff not found
-    fontData = Buffer.from('');
-  }
+  // Astro build runs from the project root, so anchor the font path there.
+  // No fallback: a missing font must fail the build loudly.
+  const fontPath = path.join(
+    process.cwd(),
+    'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff'
+  );
+  const fontData = await fs.readFile(fontPath);
 
   const dateString = post.data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   const topic = post.data.tags.length > 0 ? post.data.tags[0] : 'notes';
 
+  // satori-html escapes interpolated markup, so the route diagram goes in as a
+  // data-URI background image instead of inline SVG children.
+  // Watermark opacity so the route never fights the type
+  const routeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><g opacity="0.3">${routeShapes}</g></svg>`;
+  const routeBg = `url(data:image/svg+xml;base64,${Buffer.from(routeSvg).toString('base64')})`;
+
   const markup = html`
-    <div style="display: flex; background-color: #DADBD2; width: 1200px; height: 630px; position: relative; font-family: 'JetBrains Mono', monospace; color: #1E211B;">
-      
-      <!-- Abstract routing SVG background -->
-      <svg width="1200" height="630" viewBox="0 0 1200 630" style="position: absolute; top: 0; left: 0;">
-        <g dangerouslySetInnerHTML=${{ __html: routeShapes }}></g>
-      </svg>
+    <div style="display: flex; background-color: #DADBD2; background-image: ${routeBg}; background-size: 1200px 630px; width: 1200px; height: 630px; position: relative; font-family: 'JetBrains Mono', monospace; color: #1E211B;">
       
       <!-- Content Wrapper -->
       <div style="display: flex; flex-direction: column; justify-content: space-between; width: 100%; height: 100%; padding: 80px; z-index: 10;">
@@ -61,7 +58,7 @@ export const GET = async ({ props }) => {
         <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
           <div style="display: flex; flex-direction: column;">
             <div style="display: flex; font-size: 32px; font-weight: 700; color: #2F6B5E; margin-bottom: 24px;">
-              B-${post.id.slice(0,3).toUpperCase()} <!-- Mock ID -->
+              ${articleNumber}
             </div>
             <div style="display: flex; font-size: 64px; font-weight: 700; max-width: 800px; line-height: 1.1; margin-bottom: 32px;">
               ${post.data.title}
@@ -124,7 +121,8 @@ export const GET = async ({ props }) => {
       headers: { 'Content-Type': 'image/png' },
     });
   } catch (error) {
+    // Rethrow so the build fails — never serve a non-PNG body from this endpoint.
     console.error('Error generating OG image:', error);
-    return new Response('Error generating image', { status: 500 });
+    throw error;
   }
 };
