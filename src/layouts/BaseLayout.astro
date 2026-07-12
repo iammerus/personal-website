@@ -19,7 +19,6 @@ const {
   structuredData
 } = Astro.props;
 
-const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
 ---
 
 <!DOCTYPE html>
@@ -32,9 +31,8 @@ const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
       structuredData={structuredData}
     />
 
-    {umamiId && (
-      <script async src="https://analytics.umami.is/script.js" data-website-id={umamiId} data-domains="mups.co.zw"></script>
-    )}
+    <!-- Website id is public by design; data-domains keeps dev/preview hits out -->
+    <script async src="https://analytics.umami.is/script.js" data-website-id="99b4c454-a100-4659-aea8-9b7604b22128" data-domains="mups.co.zw"></script>
     
     <!-- Theme script runs early to prevent FOUC -->
     <script is:inline>
