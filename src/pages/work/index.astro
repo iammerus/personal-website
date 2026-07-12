@@ -31,8 +31,9 @@ const sortedProjects = workProjects.sort((a, b) => b.data.date.valueOf() - a.dat
             <div class="project-meta font-utility text-muted">
               <span>{project.data.role}</span>
               <span class="meta-separator">·</span>
-              <span>{project.data.status}</span>
+              <span class="project-status">{project.data.status}</span>
             </div>
+            <span class="case-link font-utility">Read the case study <span class="case-arrow">→</span></span>
           </div>
           <div class="project-visual">
             <ProjectSchematic />
@@ -109,8 +110,29 @@ const sortedProjects = workProjects.sort((a, b) => b.data.date.valueOf() - a.dat
     font-size: 0.875rem;
   }
 
+  .project-status {
+    color: var(--accent-color);
+  }
+
   .meta-separator {
     margin: 0 0.5rem;
+  }
+
+  .case-link {
+    display: inline-block;
+    margin-top: 2rem;
+    font-size: 0.875rem;
+    color: var(--accent-color);
+  }
+
+  .case-arrow {
+    display: inline-block;
+    transition: transform 200ms ease;
+  }
+
+  .project-entry:hover .case-arrow,
+  .project-entry:focus-within .case-arrow {
+    transform: translateX(4px);
   }
 
   @media (max-width: 900px) {

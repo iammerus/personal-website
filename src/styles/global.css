@@ -13,7 +13,8 @@
   --c-ink: #1E211B;
   --c-verdigris: #2F6B5E;
   --c-brass: #A6772E;
-  --c-slate: #6B6D62;
+  /* Darker than the spec's #6B6D62, which measured 3.77:1 on paper — below AA */
+  --c-slate: #5A5C52;
   --c-line: rgba(30, 33, 27, 0.16);
 
   /* Typography */
@@ -126,7 +127,7 @@ a:hover {
   width: 7px;
   height: 7px;
   background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--text-muted);
   border-radius: 50%;
   transform: translateX(-50%);
 }
@@ -152,6 +153,10 @@ a:hover {
 .font-utility {
   font-family: var(--font-utility);
   font-weight: 400;
+}
+
+.text-muted {
+  color: var(--text-muted);
 }
 
 /* Structural elements */
