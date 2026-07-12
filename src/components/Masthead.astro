@@ -1,0 +1,211 @@
+---
+interface Props {
+  /** Article pages: stick to the top so the reading-progress trace stays visible */
+  sticky?: boolean;
+}
+
+const { sticky = false } = Astro.props;
+const pathname = Astro.url.pathname;
+
+const navItems = [
+  { label: 'Work', path: '/work' },
+  { label: 'Writing', path: '/blog' },
+  { label: 'About', path: '/about' },
+];
+
+function isActive(path: string) {
+  if (path === '/' && pathname !== '/') return false;
+  return pathname.startsWith(path) && (path !== '/' || pathname === '/');
+}
+---
+
+<header class:list={['masthead', { sticky }]}>
+  <div class="masthead-container container">
+    <div class="masthead-left">
+      <a href="/" class="masthead-identity">
+        <div class="name font-display">Melvin Mupondori</div>
+        <div class="title font-utility text-muted">Senior software engineer · platform and product</div>
+      </a>
+    </div>
+    
+    <nav class="masthead-nav">
+      <ul>
+        {navItems.map(item => (
+          <li>
+            <a href={item.path} class={isActive(item.path) ? 'active' : ''} aria-current={isActive(item.path) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    
+    <div class="masthead-right">
+      <button id="theme-toggle-header" class="theme-toggle" aria-label="Toggle theme">
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="progress-trace" id="reading-progress"></div>
+</header>
+
+<style>
+  .masthead {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    position: relative;
+    view-transition-name: masthead;
+  }
+
+  .masthead.sticky {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-color);
+  }
+
+  .masthead-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  /* Nav clusters with the theme toggle on the right instead of floating mid-bar */
+  .masthead-nav {
+    margin-left: auto;
+    margin-right: 2.5rem;
+  }
+  
+  .masthead-left {
+    display: flex;
+    align-items: center;
+  }
+
+  .masthead-identity {
+    color: var(--text-color);
+  }
+
+  .masthead-identity:hover {
+    text-decoration: none;
+  }
+
+  .masthead-identity:hover .name {
+    color: var(--accent-color);
+  }
+
+  .masthead-identity .name {
+    font-size: 1rem;
+    line-height: 1.2;
+    transition: color 150ms ease;
+  }
+
+  .masthead-identity .title {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  
+  .masthead-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .masthead-nav a {
+    color: var(--text-color);
+    font-size: 0.9rem;
+  }
+
+  .masthead-nav a:hover, .masthead-nav a:focus {
+    text-decoration: none;
+    color: var(--accent-color);
+  }
+
+  .masthead-nav a.active {
+    color: var(--accent-color);
+  }
+  
+  .masthead-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .theme-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 150ms ease;
+  }
+  
+  .theme-toggle:hover {
+    color: var(--text-color);
+  }
+  
+  .progress-trace {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    height: 1px;
+    background-color: var(--accent-color);
+    width: 0%;
+    transition: width 100ms ease;
+  }
+  
+  @media (max-width: 768px) {
+    .masthead {
+      padding: 1rem 0;
+    }
+
+    .masthead-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .masthead-nav {
+      width: 100%;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    .masthead-right {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  import { track } from '../lib/analytics';
+
+  function setupThemeToggle() {
+    const btn = document.getElementById('theme-toggle-header');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      const isDark = document.documentElement.hasAttribute('data-theme');
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      }
+      track('theme_changed');
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupThemeToggle);
+</script>

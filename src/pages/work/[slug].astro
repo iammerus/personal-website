@@ -1,0 +1,228 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import { person, breadcrumbs, SITE_URL } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('work');
+  return projects.map(project => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+
+const allPosts = await getCollection('blog');
+const relatedPosts = allPosts
+  .filter(post => post.data.relatesTo === project.id)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const pageUrl = `${SITE_URL}/work/${project.id}`;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CreativeWork',
+      name: project.data.title,
+      description: project.data.description,
+      author: person,
+      creator: person,
+      url: pageUrl,
+    },
+    breadcrumbs([
+      { name: 'Home', url: SITE_URL },
+      { name: 'Work', url: `${SITE_URL}/work` },
+      { name: project.data.title, url: pageUrl },
+    ]),
+  ],
+};
+---
+
+<BaseLayout
+  title={`${project.data.title} · Work by Melvin Mupondori`}
+  description={project.data.description}
+  structuredData={structuredData}
+>
+  <div class="container case-study-container">
+
+    <header class="case-study-header">
+      <h1 class="font-display">{project.data.title}</h1>
+
+      <!-- Stamped strip -->
+      <div class="stamped-strip font-utility text-muted hairline-divider">
+        <div class="stamp-item">
+          <span class="stamp-label">Role</span>
+          <span class="stamp-value">{project.data.role}</span>
+        </div>
+        <div class="stamp-item">
+          <span class="stamp-label">Status</span>
+          <span class="stamp-value">{project.data.status}</span>
+        </div>
+        <div class="stamp-item">
+          <span class="stamp-label">Stack</span>
+          <span class="stamp-value">{project.data.stack.join(', ')}</span>
+        </div>
+        {project.data.started && (
+          <div class="stamp-item">
+            <span class="stamp-label">Started</span>
+            <span class="stamp-value">{project.data.started}</span>
+          </div>
+        )}
+        <div class="stamp-item">
+          <span class="stamp-label">Link</span>
+          <span class="stamp-value">
+            {project.data.liveUrl ? (
+              <a href={project.data.liveUrl}>{project.data.liveUrl}</a>
+            ) : (
+              'Not yet public'
+            )}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <div class="case-study-content reading-container">
+
+      <Content />
+
+      {relatedPosts.length > 0 && (
+        <section class="related-writing hairline-divider">
+          <h2>Related writing</h2>
+          <div class="article-list">
+            {relatedPosts.map(post => (
+              <a href={`/blog/${post.id}`} class="article-row">
+                <div class="article-title font-display">{post.data.title}</div>
+                <div class="article-date font-utility text-muted">
+                  {post.data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .case-study-container {
+    padding-top: 4rem;
+    padding-bottom: 6rem;
+  }
+
+  .case-study-header {
+    margin-bottom: 4rem;
+  }
+
+  .case-study-header h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .stamped-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .stamp-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .stamp-label {
+    font-size: 0.75rem;
+  }
+
+  .stamp-value {
+    color: var(--text-color);
+  }
+
+  .case-study-content {
+    margin: 0; /* Left align under header */
+  }
+
+  /* MDX renders flat h2/p (no <section> wrappers); :global() reaches the
+     rendered markdown, and h2 margin-top collapses to the same 4rem section
+     rhythm the static page had. */
+  .case-study-content :global(h2) {
+    font-size: 1.5rem;
+    margin-top: 4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .case-study-content :global(p) {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .related-writing {
+    margin-top: 6rem;
+    padding-top: 4rem;
+  }
+
+  .related-writing h2 {
+    margin-top: 0;
+  }
+
+  .article-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .article-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 200ms ease;
+  }
+
+  .article-row:hover {
+    border-color: var(--accent-color);
+    text-decoration: none;
+  }
+
+  .article-row:hover .article-title {
+    color: var(--accent-color);
+  }
+
+  .article-title {
+    font-size: 1.25rem;
+    transition: color 200ms ease;
+  }
+
+  @media (max-width: 768px) {
+    .case-study-container {
+      padding-top: 1.5rem;
+      padding-bottom: 3rem;
+    }
+
+    .case-study-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .stamped-strip {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .article-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  }
+</style>

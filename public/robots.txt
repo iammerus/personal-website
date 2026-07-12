@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://melvinmupondori.dev/sitemap-index.xml
+# Prevent indexing of development or preview environments if ever deployed there
+User-agent: *
+Disallow: /*?*preview=true*
+
+Sitemap: https://mups.co.zw/sitemap-index.xml

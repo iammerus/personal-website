@@ -1,0 +1,20 @@
+---
+title: "Reading a solar inverter over RS485 with an ESP32"
+description: "Using an ESP32 and MAX485 module to bring battery state, usage and alarms into Home Assistant."
+date: 2026-07-08
+tags: ["hardware", "home-assistant"]
+---
+
+My solar inverter has a perfectly fine proprietary app, but it lives on a cloud server somewhere and updates once every 5 minutes. I wanted real-time data, locally, inside Home Assistant.
+
+### The interface
+
+Most commercial inverters expose an RS485 port for Modbus RTU communication. It's an ancient industrial standard, but it's incredibly robust.
+
+Using a cheap MAX485 module wired to an ESP32, I can act as a Modbus master and poll the inverter's holding registers directly.
+
+### The setup
+
+Getting the timing right on ESPHome's Modbus component took some trial and error, as RS485 is half-duplex. If you try to read too fast, you'll collide with the inverter's response.
+
+Once it was dialed in, the data flowed beautifully. Home Assistant now knows exactly when the battery hits 100%, and I can trigger automations to dump excess solar power into the water heater.

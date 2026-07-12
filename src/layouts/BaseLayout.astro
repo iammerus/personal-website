@@ -1,0 +1,150 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import Masthead from '../components/Masthead.astro';
+import Footer from '../components/Footer.astro';
+import SEO from '../components/SEO.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  structuredData?: object;
+  /** Homepage only: the spine's power net terminates at a gnd symbol in the footer */
+  grounded?: boolean;
+  /** Article pages: masthead sticks so the reading-progress trace stays visible */
+  stickyHeader?: boolean;
+}
+
+const {
+  title = "Melvin Mupondori",
+  description = "Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments.",
+  image,
+  structuredData,
+  grounded = false,
+  stickyHeader = false
+} = Astro.props;
+
+---
+
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <SEO
+      title={title}
+      description={description}
+      image={image}
+      structuredData={structuredData}
+    />
+
+    <!-- Website id is public by design; data-domains keeps dev/preview hits out -->
+    <script async src="https://analytics.umami.is/script.js" data-website-id="99b4c454-a100-4659-aea8-9b7604b22128" data-domains="mups.co.zw"></script>
+    
+    <!-- Theme script runs early to prevent FOUC. astro:after-swap re-applies it
+         before the new page paints — the ClientRouter replaces <html>, which
+         would otherwise reset data-theme to light on every navigation. -->
+    <script is:inline>
+      function applyTheme() {
+        const theme =
+          localStorage.getItem('theme') ??
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      }
+
+      applyTheme();
+      document.addEventListener('astro:after-swap', applyTheme);
+    </script>
+    
+    <ClientRouter />
+  </head>
+  <body>
+    <!-- You found the service hatch. Nothing is on fire. -->
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <div id="stars-container"></div>
+    <Masthead sticky={stickyHeader} />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer grounded={grounded} />
+    
+    <script>
+      // Night-mode stars live only in the gutters beside the content column —
+      // never behind body text (spec §13). No gutters (narrow viewports) → no stars.
+      function generateStars() {
+        const container = document.getElementById('stars-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const contentMax = 1240;
+        const vw = window.innerWidth;
+        const gutter = (vw - contentMax) / 2;
+        if (gutter < 48) return;
+
+        const bands: [number, number][] = [
+          [0, gutter - 8],
+          [vw - gutter + 8, vw],
+        ];
+        const starCount = 40;
+        for (let i = 0; i < starCount; i++) {
+          const [min, max] = bands[i % 2];
+          const star = document.createElement('div');
+          const size = Math.random() * 2 + 1;
+          star.style.position = 'absolute';
+          star.style.left = `${min + Math.random() * (max - min)}px`;
+          star.style.top = `${Math.random() * 100}%`;
+          star.style.width = `${size}px`;
+          star.style.height = `${size}px`;
+          star.style.backgroundColor = 'var(--c-ink)';
+          star.style.borderRadius = '50%';
+          star.style.opacity = `${Math.random() * 0.5 + 0.1}`;
+          container.appendChild(star);
+        }
+      }
+
+      document.addEventListener('astro:page-load', generateStars);
+
+      // Re-place on resize so rotation never strands a star over text
+      let starsResizeTimer: ReturnType<typeof setTimeout>;
+      window.addEventListener('resize', () => {
+        clearTimeout(starsResizeTimer);
+        starsResizeTimer = setTimeout(generateStars, 200);
+      });
+    </script>
+
+    <script>
+      import { track } from '../lib/analytics';
+
+      // ponytail: one delegated listener instead of per-page handlers; persists across view transitions
+      document.addEventListener('click', (e) => {
+        const a = (e.target as Element).closest('a');
+        if (!a) return;
+        const href = a.getAttribute('href') || '';
+        if (href.startsWith('mailto:')) track('email_opened');
+        else if (href.includes('rss.xml')) track('rss_opened');
+        else if (href.includes('github.com') || href.includes('x.com')) track('external_profile_opened');
+        else if (href.startsWith('/work/') && href !== '/work/') track('case_study_opened');
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  main {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  /* Vertical rhythm compresses with the viewport — desktop air reads as
+     emptiness on a phone */
+  @media (max-width: 768px) {
+    main {
+      padding-top: 1.5rem;
+      padding-bottom: 2.5rem;
+    }
+  }
+</style>
