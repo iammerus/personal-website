@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectSchematic from '../components/ProjectSchematic.astro';
 import { getCollection } from 'astro:content';
 import { person, SITE_URL } from '../lib/schema';
 
@@ -22,14 +23,14 @@ const structuredData = {
   structuredData={structuredData}
 >
   <div class="container home-container">
-    <div class="route-line main-route"></div>
+    <div class="trace-line main-route"></div>
 
     <!-- Section 1: Introduction -->
     <section class="intro-section">
       <h1 class="thesis-line">
         I build software, tinker with hardware, and spend an unreasonable amount of time figuring out how things work.
       </h1>
-      <div class="route-junction"></div>
+      <div class="trace-node route-junction"></div>
     </section>
 
     <!-- Section 2: Now -->
@@ -56,7 +57,7 @@ const structuredData = {
           </svg>
         </div>
       </div>
-      <div class="route-junction"></div>
+      <div class="trace-node route-junction"></div>
     </section>
 
     <!-- Section 3: Something I'm proud of -->
@@ -75,15 +76,10 @@ const structuredData = {
           </div>
         </div>
         <div class="project-visual">
-          <!-- Placeholder for screenshot crop -->
-          <div class="screenshot-placeholder">
-            <div class="placeholder-content">
-              <span class="font-utility text-muted">ZenHost Interface Crop</span>
-            </div>
-          </div>
+          <ProjectSchematic />
         </div>
       </a>
-      <div class="route-junction"></div>
+      <div class="trace-node route-junction"></div>
     </section>
 
     <!-- Section 4: Recent writing -->
@@ -105,7 +101,7 @@ const structuredData = {
           <div class="font-utility text-muted py-4">Logs are currently empty.</div>
         )}
       </div>
-      <div class="route-junction end-junction"></div>
+      <div class="trace-node route-junction end-junction"></div>
     </section>
 
   </div>
@@ -117,24 +113,13 @@ const structuredData = {
     padding-left: 3rem; /* Space for the route line */
   }
 
+  /* Look comes from the global .trace-line / .trace-node primitives; only position here */
   .main-route {
-    position: absolute;
-    top: 0;
-    bottom: 0;
     left: 2rem;
-    width: 1px;
-    background-color: var(--border-color);
   }
 
   .route-junction {
-    position: absolute;
     left: -1rem; /* -3rem from container + 2rem line pos = -1rem relative */
-    width: 6px;
-    height: 6px;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    transform: translateX(-50%);
   }
   
   .intro-section .route-junction { top: 2rem; }
@@ -213,21 +198,6 @@ const structuredData = {
 
   .meta-separator {
     margin: 0 0.5rem;
-  }
-
-  .screenshot-placeholder {
-    width: 100%;
-    height: 100%;
-    min-height: 200px;
-    background-color: var(--c-bone);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-color);
-  }
-
-  :root[data-theme='dark'] .screenshot-placeholder {
-    background-color: var(--c-bone); /* Uses night bone */
   }
 
   .article-list {

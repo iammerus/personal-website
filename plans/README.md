@@ -24,15 +24,15 @@ plus visual confirmation via `pnpm preview`.
 
 | Plan | Title | Priority | Effort | Depends on | Status |
 |------|-------|----------|--------|------------|--------|
-| 001 | Remove the old site (dead code, assets, deps, aliases) | P1 | M | — | TODO |
-| 002 | Fix OG image generation (currently 22-byte error files) | P1 | S | — | TODO |
-| 003 | Fix correctness bugs & spec-rule violations | P1 | S | — | TODO |
-| 004 | Add JSON-LD structured data across pages | P2 | M | — | TODO |
-| 005 | Wire real analytics (Umami id + 7 custom events) | P2 | M | 001 | TODO |
-| 006 | Add `/work/[slug]` route, migrate ZenHost into the collection | P2 | M | — | TODO |
-| 007 | Fill remaining spec features (skip-link, series nav, source-comment trinket) | P2 | S | — | TODO |
-| 008 | Design-finish pass — kill placeholders, make the schematic a system | P2 | L | 001 | TODO |
-| 009 | Deepen the three blog posts (collaborate with Mel) | P3 | L | — | TODO |
+| 001 | Remove the old site (dead code, assets, deps, aliases) | P1 | M | — | DONE |
+| 002 | Fix OG image generation (currently 22-byte error files) | P1 | S | — | DONE |
+| 003 | Fix correctness bugs & spec-rule violations | P1 | S | — | DONE |
+| 004 | Add JSON-LD structured data across pages | P2 | M | — | DONE |
+| 005 | Wire real analytics (Umami id + 7 custom events) | P2 | M | 001 | DONE |
+| 006 | Add `/work/[slug]` route, migrate ZenHost into the collection | P2 | M | — | DONE |
+| 007 | Fill remaining spec features (skip-link, series nav, source-comment trinket) | P2 | S | — | DONE |
+| 008 | Design-finish pass — kill placeholders, make the schematic a system | P2 | L | 001 | DONE |
+| 009 | Deepen the three blog posts (collaborate with Mel) | P3 | L | — | BLOCKED (needs Mel's real material) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (rationale)
 

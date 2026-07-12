@@ -33,7 +33,7 @@ function getReadingTime(body: string) {
   structuredData={structuredData}
 >
   <div class="container trace-container">
-    <div class="main-trace" id="main-trace"></div>
+    <div class="trace-line main-trace" id="main-trace"></div>
     
     <header class="trace-header">
       <h1 class="font-display">Writing</h1>
@@ -48,7 +48,7 @@ function getReadingTime(body: string) {
         const articleNumber = `B-${(sortedPosts.length - index).toString().padStart(3, '0')}`;
         return (
           <article class="trace-entry">
-            <div class="entry-junction"></div>
+            <div class="trace-node entry-junction"></div>
             <div class="entry-connection"></div>
             
             <a href={`/blog/${post.id}`} class="entry-content">
@@ -72,7 +72,7 @@ function getReadingTime(body: string) {
     </div>
 
     <footer class="trace-footer">
-      <div class="entry-junction end-junction"></div>
+      <div class="trace-node entry-junction end-junction"></div>
       <p>That is everything for now.</p>
       <p>
         Follow future entries through <a href="/rss.xml" class="rss-link">RSS. <span class="rss-node">○</span></a>
@@ -89,16 +89,12 @@ function getReadingTime(body: string) {
     margin: 0 auto;
   }
 
+  /* Look comes from the global .trace-line primitive; position + scroll colour here */
   .main-trace {
-    position: absolute;
-    top: 0;
-    bottom: 0;
     left: 2rem;
-    width: 1px;
-    background-color: var(--border-color);
     transition: background-color 300ms ease;
   }
-  
+
   .trace-container.scrolled .main-trace {
     background-color: var(--accent-color);
   }
@@ -130,15 +126,8 @@ function getReadingTime(body: string) {
   }
 
   .entry-junction {
-    position: absolute;
     left: -2rem;
     top: 0.5rem;
-    width: 8px;
-    height: 8px;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    transform: translateX(-50%);
     transition: background-color 200ms ease, border-color 200ms ease;
     z-index: 2;
   }

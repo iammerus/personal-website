@@ -27,7 +27,7 @@ It worked for one person. It was fast, and it solved my immediate problem of wan
 
 ## What became difficult
 
-The simplicity broke down immediately once multiple tenants were introduced. Port conflicts became a constant issue—everyone wanted their Node.js app to run on port 3000.
+The simplicity broke down immediately once multiple tenants were introduced. Port conflicts became a constant issue. Everyone wanted their Node.js app to run on port 3000.
 
 Tenant isolation, runtime management, and deployment state suddenly became serious engineering problems. I had to rip out the direct port binding and implement a dynamic reverse proxy that communicated with an internal bridge network. I had to learn how to securely stream build logs to a frontend in real-time without overwhelming the browser or the server.
 

@@ -69,18 +69,29 @@ const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
     <Footer />
     
     <script>
-      // Star generation for night mode
+      // Night-mode stars live only in the gutters beside the content column —
+      // never behind body text (spec §13). No gutters (narrow viewports) → no stars.
       function generateStars() {
         const container = document.getElementById('stars-container');
         if (!container) return;
-        
+
         container.innerHTML = '';
-        const starCount = 50; // Sparse
+        const contentMax = 1240;
+        const vw = window.innerWidth;
+        const gutter = (vw - contentMax) / 2;
+        if (gutter < 48) return;
+
+        const bands: [number, number][] = [
+          [0, gutter - 8],
+          [vw - gutter + 8, vw],
+        ];
+        const starCount = 40;
         for (let i = 0; i < starCount; i++) {
+          const [min, max] = bands[i % 2];
           const star = document.createElement('div');
           const size = Math.random() * 2 + 1;
           star.style.position = 'absolute';
-          star.style.left = `${Math.random() * 100}%`;
+          star.style.left = `${min + Math.random() * (max - min)}px`;
           star.style.top = `${Math.random() * 100}%`;
           star.style.width = `${size}px`;
           star.style.height = `${size}px`;
@@ -90,9 +101,14 @@ const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
           container.appendChild(star);
         }
       }
-      
-      document.addEventListener('astro:page-load', () => {
-        generateStars();
+
+      document.addEventListener('astro:page-load', generateStars);
+
+      // Re-place on resize so rotation never strands a star over text
+      let starsResizeTimer: ReturnType<typeof setTimeout>;
+      window.addEventListener('resize', () => {
+        clearTimeout(starsResizeTimer);
+        starsResizeTimer = setTimeout(generateStars, 200);
       });
     </script>
 
