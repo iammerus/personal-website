@@ -14,7 +14,7 @@ const structuredData = {
   description="About Melvin Mupondori, a senior software engineer working across developer platforms, products and the occasional undocumented hardware signal."
   structuredData={structuredData}
 >
-  <div class="container about-container reading-container">
+  <div class="container about-container">
     
     <header class="about-header">
       <h1 class="font-display">About</h1>
@@ -115,6 +115,12 @@ const structuredData = {
   .about-container {
     padding-top: 2rem;
     padding-bottom: 6rem;
+  }
+
+  /* Left-anchored reading measure — same left rail as every other page */
+  .about-header,
+  .about-content {
+    max-width: var(--reading-width);
   }
 
   .about-header {

@@ -152,10 +152,15 @@ const structuredData = {
 
 <style>
   .article-container {
-    max-width: var(--reading-width);
-    margin: 0 auto;
     padding-top: 2rem;
     padding-bottom: 4rem;
+  }
+
+  /* Left-anchored reading measure — same left rail as every other page.
+     The related-writing footer keeps the full grid width. */
+  .article-header,
+  .article-body {
+    max-width: var(--reading-width);
   }
 
   .article-header {
