@@ -1,9 +1,26 @@
 ---
+interface Props {
+  /** Homepage only: the spine terminates here at a gnd symbol */
+  grounded?: boolean;
+}
+
+const { grounded = false } = Astro.props;
 const currentYear = new Date().getFullYear();
 ---
 
-<footer class="global-footer">
+<footer class:list={['global-footer', { grounded }]}>
   <div class="footer-container container">
+    {grounded && (
+      <div class="gnd-marker" aria-hidden="true">
+        <div class="gnd-segment"></div>
+        <svg class="gnd-symbol" width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
+          <line x1="1" y1="1" x2="17" y2="1" />
+          <line x1="4.5" y1="6" x2="13.5" y2="6" />
+          <line x1="7.5" y1="11" x2="10.5" y2="11" />
+        </svg>
+        <span class="gnd-label font-utility text-muted">gnd</span>
+      </div>
+    )}
     <div class="footer-row top-row">
       <div class="contact-statement font-utility text-muted">
         Open to consulting, collaboration and good problems.
@@ -48,6 +65,63 @@ const currentYear = new Date().getFullYear();
   .global-footer {
     padding: 4rem 0 2rem;
     view-transition-name: footer;
+  }
+
+  /* Grounded variant (homepage): the spine's rail enters from above and
+     terminates at a ground symbol beside the contact row */
+  .global-footer.grounded .footer-container {
+    position: relative;
+    padding-left: 3rem;
+  }
+
+  .gnd-marker {
+    position: absolute;
+    left: 2rem;
+    top: 0;
+  }
+
+  /* Bridges main's 4rem bottom padding (where the home rail's bleed ends)
+     down past the footer's top padding to the symbol */
+  .gnd-segment {
+    position: absolute;
+    left: 0;
+    top: -4rem;
+    width: 1px;
+    height: 5.5rem;
+    background-color: var(--border-color);
+  }
+
+  .gnd-symbol {
+    position: absolute;
+    left: 0;
+    top: 1.5rem;
+    transform: translateX(-50%);
+  }
+
+  .gnd-label {
+    position: absolute;
+    left: 0;
+    top: calc(1.5rem + 18px);
+    transform: translateX(-50%);
+    font-size: 0.625rem;
+  }
+
+  @media (max-width: 768px) {
+    /* mobile main padding-bottom is 2.5rem */
+    .gnd-segment {
+      top: -2.5rem;
+      height: 4rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .global-footer.grounded .footer-container {
+      padding-left: 2rem;
+    }
+
+    .gnd-marker {
+      left: 1rem;
+    }
   }
   
   .footer-row {

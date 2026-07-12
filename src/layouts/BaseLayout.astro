@@ -10,13 +10,16 @@ interface Props {
   description?: string;
   image?: string;
   structuredData?: object;
+  /** Homepage only: the spine's power net terminates at a gnd symbol in the footer */
+  grounded?: boolean;
 }
 
 const {
   title = "Melvin Mupondori",
   description = "Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments.",
   image = "/og-image.png",
-  structuredData
+  structuredData,
+  grounded = false
 } = Astro.props;
 
 ---
@@ -64,7 +67,7 @@ const {
     <main id="main-content">
       <slot />
     </main>
-    <Footer />
+    <Footer grounded={grounded} />
     
     <script>
       // Night-mode stars live only in the gutters beside the content column —

@@ -21,9 +21,16 @@ const structuredData = {
   title="Melvin Mupondori · Software Engineer"
   description="Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments, then writes about how they work."
   structuredData={structuredData}
+  grounded
 >
   <div class="container home-container">
-    <div class="trace-line main-route"></div>
+    <!-- The spine: a power net. In at vcc, junctions fill as sections come into view,
+         out at the gnd symbol in the footer. -->
+    <div class="trace-line main-route" aria-hidden="true"></div>
+    <div class="vcc-marker" aria-hidden="true">
+      <span class="trace-node vcc-node filled"></span>
+      <span class="vcc-label font-utility text-muted">vcc</span>
+    </div>
 
     <!-- Section 1: Introduction -->
     <section class="intro-section">
@@ -126,7 +133,7 @@ const structuredData = {
           <div class="font-utility text-muted py-4">Logs are currently empty.</div>
         )}
       </div>
-      <div class="trace-node route-junction end-junction"></div>
+      <div class="trace-node route-junction"></div>
     </section>
 
   </div>
@@ -138,24 +145,40 @@ const structuredData = {
     padding-left: 3rem; /* Space for the route line */
   }
 
-  /* Look comes from the global .trace-line / .trace-node primitives; only position here */
+  /* Look comes from the global .trace-line / .trace-node primitives; only position here.
+     The rail bleeds through main's bottom padding to meet the footer's gnd segment. */
   .main-route {
     left: 2rem;
+    bottom: -4rem;
+  }
+
+  .vcc-marker {
+    position: absolute;
+    top: -0.25rem;
+    left: 2rem;
+  }
+
+  .vcc-node {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .vcc-label {
+    position: absolute;
+    top: -0.3rem;
+    left: 0.75rem;
+    font-size: 0.625rem;
   }
 
   .route-junction {
     left: -1rem; /* -3rem from container + 2rem line pos = -1rem relative */
   }
-  
+
   .intro-section .route-junction { top: 2rem; }
   .now-section .route-junction { top: 3rem; }
   .proud-section .route-junction { top: 3rem; }
   .writing-section .route-junction { top: 3rem; }
-  
-  .end-junction {
-    bottom: -4rem;
-    top: auto !important;
-  }
 
   section {
     position: relative;
@@ -350,6 +373,13 @@ const structuredData = {
     }
   }
 
+  @media (max-width: 768px) {
+    /* mobile main padding-bottom is 2.5rem */
+    .main-route {
+      bottom: -2.5rem;
+    }
+  }
+
   @media (max-width: 600px) {
     .home-container {
       padding-left: 2rem;
@@ -357,8 +387,35 @@ const structuredData = {
     .main-route {
       left: 1rem;
     }
+    .vcc-marker {
+      left: 1rem;
+    }
     .route-junction {
       left: -1rem;
     }
   }
 </style>
+
+<script>
+  // Junctions fill as their sections come into view — the net powers up from vcc
+  function setupSpine() {
+    const sections = document.querySelectorAll('.home-container section');
+    if (!sections.length) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.querySelector('.route-junction')?.classList.add('filled');
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '0px 0px -25% 0px' }
+    );
+
+    sections.forEach((s) => io.observe(s));
+  }
+
+  document.addEventListener('astro:page-load', setupSpine);
+</script>

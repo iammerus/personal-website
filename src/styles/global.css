@@ -130,6 +130,12 @@ a:hover {
   border: 1px solid var(--text-muted);
   border-radius: 50%;
   transform: translateX(-50%);
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.trace-node.filled {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 /* Layout Utilities */
