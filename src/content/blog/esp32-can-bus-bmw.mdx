@@ -1,52 +1,215 @@
 ---
-title: "Listening to a BMW E87 with an ESP32 and MCP2551"
-description: "A practical record of connecting to the CAN bus, capturing traffic, distinguishing noise from useful signals and working out what the car is saying."
-date: 2026-07-10
-tags: ["hardware", "reverse-engineering"]
+title: "Listening to an Abandoned BMW E87 with an ESP32 and MCP2551"
+description: "Listening at the OBD-II port, finding K-CAN behind the radio, picking the wrong bit rate, and finally getting 400 frames a second out of a car that's been sitting for who knows how long."
+date: 2026-06-16
+tags: ["esp32", "can-bus", "bmw-e87"]
 ---
 import EnhancedCodeBlock from '../../components/EnhancedCodeBlock.astro';
 
-Modern cars are essentially rolling networks. Every time you press a button, turn the steering wheel, or open a door, a message is broadcast across a Controller Area Network (CAN) bus.
+I'm rebuilding an abandoned 2009 BMW E87 118i.
 
-I wanted to see what my BMW E87 was thinking.
+Getting the engine running again is the obvious bit. What I actually want is what comes after: proper telemetry, custom logging, diagnostics that go further than whatever a scan tool can give me.
 
-### The hardware
+That's why I've started poking at the car's CAN bus with an ESP32.
 
-To tap into the CAN bus, you need two things: something to read the physical electrical signals, and something to process the protocol. I used:
-- An ESP32 microcontroller
-- An MCP2551 CAN transceiver module
+Before I get anywhere near mapping signals or building anything, I needed to answer something more basic: could I even hear what the car was saying?
 
-### Finding the bus
+### Starting at the OBD-II port
 
-The easiest place to find the CAN bus on an E87 is the OBD-II port under the steering wheel, but that's often isolated behind a gateway that only wakes up for diagnostic requests. To hear the "chatter", I tapped directly into the K-CAN (Karosserie-CAN, or body CAN) behind the radio.
+I started where anyone would: the OBD-II connector under the steering wheel.
+
+This is a 2009 E87, so diagnostics run over D-CAN, on pins 6 and 14, at 500kbit/s. In my head this was going to be like opening a tap: plug in, and watch frames pour across those two pins.
+
+I pushed jumper wires into the connector, powered up the ESP32, and watched the serial monitor.
+
+The terminal was completely silent.
+
+I checked the wiring. Restarted the ESP32. Swapped what I thought were the receive and transmit lines, in case I'd mixed them up.
+
+Still nothing.
+
+My first thought was a hardware fault. The real answer was that I'd misunderstood what the diagnostic port actually gives you.
+
+D-CAN isn't a passive tap into everything happening on the car. There's a gateway module, the JBE (Junction Box Electronics), sitting between the diagnostic connector and the internal networks like K-CAN and PT-CAN. A diagnostic tool sends a request through that gateway, and the gateway talks to whichever module needs to answer. It doesn't mirror every internal message out to the OBD-II port for anyone listening.
+
+So the port's still useful if you want to run diagnostics. It just wasn't going to hand me the background chatter I actually wanted.
+
+### Choosing K-CAN
+
+BMW splits the car's networks by function. K-CAN, Karosserie-CAN, carries body electronics: radio, climate control, lighting, doors, the usual interior stuff. It runs at 100kbit/s. PT-CAN, which carries the powertrain, runs at 500kbit/s.
+
+K-CAN made sense as a starting point. The factory radio sits on it, and the wiring behind the centre console is about as accessible as this car gets. It's also the network I'll want later anyway, for terminal state, switch inputs, module activity, once I start replacing electronics properly.
+
+### The hardware, and a problem with it
+
+The ESP32 can understand CAN frames, arbitration and error handling through its built-in TWAI controller. What it can't do by itself is put those frames onto the car's wiring. For that, you need a transceiver.
+
+My prototype was an ESP32 dev board, an MCP2551 transceiver, a breadboard, and some dupont leads running out to the loom. It sat on the dusty centre console surrounded by wires. Not pretty, but enough to test the idea.
+
+Here's the problem with that transceiver choice: the MCP2551 is a high-speed part, meant for networks like PT-CAN and D-CAN. K-CAN is low-speed, fault-tolerant CAN, a different physical layer entirely.
+
+The MCP2551 also runs off 5V, and its RXD pin is referenced to that supply. Wiring it straight into a 3.3V ESP32 input isn't something I'd leave in a finished build without a level shifter.
+
+Microchip's own datasheet marks the MCP2551 as not recommended for new designs. They point you at a TJA1055 instead, which is the actual fault-tolerant low-speed part meant for this job. In my honest opinion, just start with the right transceiver rather than working around the wrong one.
+
+It still picked up traffic. That doesn't make it the correct part. For anything permanent I'll be swapping in a proper low-speed fault-tolerant transceiver, adding real level shifting, fusing the supply, and building a connector that isn't a fistful of dupont leads.
+
+Worth knowing too: a lot of cheap CAN boards ship with a 120Ω resistor already wired across CAN High and CAN Low, because that's correct for a standard high-speed bus with two 120Ω terminators. K-CAN doesn't work that way, termination is handled per module rather than with a matched pair at each end. If your board has that resistor built in, take it off before you tap K-CAN with it.
+
+### Finding the bus behind the radio
+
+I pulled the factory radio and dragged its Quadlock connector forward enough to get at the loom.
+
+The K-CAN pair was easy to spot once I knew what I was looking for: K-CAN High is green with an orange stripe, K-CAN Low is solid green, and the two are twisted tightly around each other. That twist isn't cosmetic, it's what lets the pair reject noise, so I tried to disturb as little of it as I could.
+
+I exposed a small section of each wire and soldered on short extensions to reach the breadboard. It worked, but next time I'd use a proper breakout harness instead of cutting into the original loom. Cutting wires is a one-way decision, and it adds a fault point I didn't need.
+
+If you're doing this on your own car, check wire colours against the diagram for your specific vehicle. Production date, market and factory options all change what you'll actually find behind that connector.
+
+### The wrong turn
+
+Wiring connected, I powered up and tried again.
+
+This time I got something, but not the something I wanted: bus errors and failed frames. I spent about twenty minutes sitting in the passenger seat re-checking the breadboard and measuring supply voltages, quietly convinced I'd killed the transceiver while soldering.
+
+The wiring was fine. I'd left the controller configured for 500kbit/s, which is right for D-CAN and PT-CAN, but I was now sitting on K-CAN, which runs at 100kbit/s. One line fixed it:
 
 <EnhancedCodeBlock lang="cpp" filename="can_reader.cpp">
 
 ```cpp
-#include <ESP32CAN.h>
-#include <CAN_config.h>
+CAN_cfg.speed = CAN_SPEED_100KBPS;
+```
 
-CAN_device_t CAN_cfg;
+</EnhancedCodeBlock>
+
+I recompiled, flashed the ESP32, and restarted it.
+
+The silence disappeared immediately.
+
+### Listening without transmitting
+
+Fixing the bit rate got me data, but my test code had another problem: it trusted the library's default mode, normal mode. A CAN controller in normal mode can acknowledge frames and raise error flags onto the bus. A "passive" experiment can still talk to the network if the timing or electrical interface is even slightly wrong, which is exactly the kind of thing you don't want on a car you're trying not to break.
+
+Espressif's TWAI driver has a proper listen-only mode for this: no transmission, no acknowledgements, no active error signalling, just receiving. Here's the version I moved to:
+
+<EnhancedCodeBlock lang="cpp" filename="can_listener.cpp">
+
+```cpp
+#include <Arduino.h>
+#include "driver/twai.h"
+
+constexpr gpio_num_t CAN_TX_PIN = GPIO_NUM_5;
+constexpr gpio_num_t CAN_RX_PIN = GPIO_NUM_4;
 
 void setup() {
     Serial.begin(115200);
 
-    // Set CAN pins
-    CAN_cfg.tx_pin_id = GPIO_NUM_5;
-    CAN_cfg.rx_pin_id = GPIO_NUM_4;
+    twai_general_config_t generalConfig =
+        TWAI_GENERAL_CONFIG_DEFAULT(
+            CAN_TX_PIN,
+            CAN_RX_PIN,
+            TWAI_MODE_LISTEN_ONLY
+        );
 
-    // BMW K-CAN runs at 100kbps
-    CAN_cfg.speed = CAN_SPEED_100KBPS;
-    CAN_cfg.rx_queue = xQueueCreate(10, sizeof(CAN_frame_t));
+    // A passive listener doesn't need a transmit queue.
+    generalConfig.tx_queue_len = 0;
+    generalConfig.rx_queue_len = 64;
 
-    ESP32Can.CANInit();
+    twai_timing_config_t timingConfig =
+        TWAI_TIMING_CONFIG_100KBITS();
+
+    twai_filter_config_t filterConfig =
+        TWAI_FILTER_CONFIG_ACCEPT_ALL();
+
+    esp_err_t result = twai_driver_install(
+        &generalConfig,
+        &timingConfig,
+        &filterConfig
+    );
+
+    if (result != ESP_OK) {
+        Serial.printf(
+            "TWAI driver installation failed: %d\n",
+            static_cast<int>(result)
+        );
+        return;
+    }
+
+    result = twai_start();
+
+    if (result != ESP_OK) {
+        Serial.printf(
+            "TWAI start failed: %d\n",
+            static_cast<int>(result)
+        );
+        return;
+    }
+
+    Serial.println("Listening to K-CAN at 100 kbit/s");
+}
+
+void loop() {
+    twai_message_t frame{};
+
+    if (twai_receive(&frame, pdMS_TO_TICKS(100)) != ESP_OK) {
+        return;
+    }
+
+    Serial.printf(
+        "ID: 0x%03lX  DLC: %u  Data:",
+        static_cast<unsigned long>(frame.identifier),
+        frame.data_length_code
+    );
+
+    if (!frame.rtr) {
+        const uint8_t length = frame.data_length_code > 8 ? 8 : frame.data_length_code;
+
+        for (uint8_t index = 0; index < length; ++index) {
+            Serial.printf(" %02X", frame.data[index]);
+        }
+    }
+
+    Serial.println();
 }
 ```
 
 </EnhancedCodeBlock>
 
-### The noise
+This fixes the controller's behaviour. It doesn't fix the MCP2551's physical-layer and voltage problems. Those still need different hardware, which is next on the list.
 
-When I finally got it connected and powered up, the terminal was immediately flooded. The car generates thousands of messages a second even when the engine is off but the car is awake. 
+### The flood
 
-The next step is figuring out how to filter this noise and isolate specific IDs, like the steering wheel buttons, to eventually control an aftermarket head unit. More on that in the next post.
+With the bit rate and the mode both correct, the serial monitor turned into something close to unreadable. Frames arrived faster than I could follow them:
+
+<EnhancedCodeBlock lang="text" filename="serial-monitor.txt">
+
+```text
+ID: 0x130  DLC: 5  Data: 45 42 00 8F 00
+ID: 0x1B4  DLC: 8  Data: 00 00 00 00 00 00 00 00
+ID: 0x0A8  DLC: 8  Data: 46 82 10 10 00 00 00 00
+ID: 0x130  DLC: 5  Data: 45 42 00 8F 00
+ID: 0x2A2  DLC: 8  Data: 00 00 00 00 00 00 00 00
+ID: 0x130  DLC: 5  Data: 45 42 00 8F 00
+```
+
+</EnhancedCodeBlock>
+
+I added a counter: roughly 400 frames a second, with the engine off and the key out.
+
+That doesn't mean the car was asleep. I'd already opened the doors and pulled the radio, and both of those wake parts of the network for a while before they settle back down. Key out and network asleep are not the same state, and it's an easy thing to get wrong if you're chasing a "quiet" baseline.
+
+A few identifiers came up over and over. 0x130 stood out because it arrived constantly and the payload wasn't static. It's probably something to do with terminal or ignition state, but finding an ID mentioned somewhere online isn't proof of anything on my car. Confirming it means testing it properly: capture with the key out, insert the key, step through each ignition position, repeat a few times, and see which bytes actually move, and whether there's a counter or checksum in there. Until I've done that, 0x130 is a decent guess and nothing more.
+
+### Making the data usable
+
+Printing every frame proved the wiring worked. It's not a way to actually study the network.
+
+The next version of the logger needs to timestamp everything, count traffic per identifier, work out frames per second, only show payloads that have changed, highlight which bytes and bits moved, log my own actions alongside the capture, and save the raw traffic so I can compare runs later. Once that's in place I can start mapping real signals instead of guessing off a scrolling wall of hex.
+
+### Where this is going
+
+K-CAN gives me body and cabin activity, which is a reasonable place to start. PT-CAN, the powertrain network, is next, and that means a proper high-speed transceiver, 500kbit/s, and the same listen-first approach I used here.
+
+I'm not transmitting anything yet. Getting a frame off the bus safely doesn't mean I understand it well enough to put one back on. Wrong IDs, wrong timing, a missing counter or checksum, any of that can upset a control unit in ways I'd rather not discover by accident.
+
+For now, this is enough: engine off, key out, and an abandoned BMW quietly sending 400 CAN frames a second to anyone who'll listen.

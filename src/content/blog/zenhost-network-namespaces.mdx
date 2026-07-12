@@ -1,74 +1,165 @@
 ---
-title: "Network namespaces, port conflicts and the first wrong assumption"
-description: "A ZenHost engineering post about assuming applications could simply own the ports they requested, and what happened once multiple tenants entered the picture."
-date: 2026-07-12
+title: "The port collision that changed how ZenHost routes apps"
+description: "How a port collision exposed the wrong hosting abstraction and led ZenHost to isolate apps with Linux network namespaces and Caddy."
+date: 2025-06-18
 tags: ["infrastructure", "networking"]
 relatesTo: "zenhost"
 ---
 import EnhancedCodeBlock from '../../components/EnhancedCodeBlock.astro';
 
-When I started building ZenHost, I wanted to keep things simple. The whole point was to avoid the complexity of Kubernetes for workloads that didn't need it. My initial thought process went something like this: *If a user wants to run a web app, they just tell me the port, and I'll bind the container to that port on the host.*
+A Node application listening on port `3000` is completely ordinary. So is a second Node application listening on port `3000`.
 
-It was a beautifully naive assumption.
+On a developer's laptop, those applications might run in separate containers or on separate machines. In the first version of ZenHost, they shared one Linux host.
 
-### The collision
+The second application failed to start.
 
-Everything worked perfectly for the first tenant. They deployed a Node.js app on port `3000`. The reverse proxy routed traffic to `127.0.0.1:3000`. Fast, clean, understandable.
+The immediate problem was a busy port. The real problem was that I'd confused an application's listen port with a host port.
 
-Then the second tenant arrived, and they also wanted port `3000`.
+### What actually failed
 
-<EnhancedCodeBlock lang="yaml" filename="docker-compose.yml">
+ZenHost originally ran each Node or Python application as a systemd service on the host network. The application model contained a port, and ZenHost passed that value into the service as an environment variable.
 
-```yaml
-version: '3'
-services:
-  app-tenant-a:
-    image: my-node-app
-    ports:
-      - "3000:3000" # All good
+<EnhancedCodeBlock lang="ini" filename="application.service">
 
-  app-tenant-b:
-    image: my-other-node-app
-    ports:
-      - "3000:3000" # Error: port already allocated
+```ini
+[Service]
+Environment=PORT=3000
 ```
 
 </EnhancedCodeBlock>
 
-I had accidentally built a system where port numbers were a global, scarce resource. I was essentially recreating the exact problem that caused shared hosting to become a nightmare in the late 90s, just with containers.
+Caddy then routed the application's hostname to that socket on the host:
 
-### Relearning network namespaces
+<EnhancedCodeBlock lang="text" filename="Caddyfile">
 
-The fix, of course, was to embrace Linux network namespaces fully, rather than fighting them by binding everything to the host network interface.
-
-Instead of letting containers dictate the host port, ZenHost needed to dynamically allocate an ephemeral port on the host side, or better yet, route traffic through an internal bridge network directly to the container's IP and private port.
-
-<EnhancedCodeBlock lang="go" filename="scheduler.go">
-
-```go
-// The wrong way: trusting the requested port blindly
-func allocatePort(requestedPort int) error {
-    if isPortInUse(requestedPort) {
-        return fmt.Errorf("port %d is already in use by another tenant", requestedPort)
-    }
-    // ...
-}
-
-// The better way: internal bridge routing
-func setupTenantRouting(containerIP string, internalPort int) {
-    // The reverse proxy dynamically maps the tenant's domain
-    // to the container's internal IP on the bridge network.
-    // The host ports are never exposed or conflicted.
-    proxy.RegisterRoute(tenantDomain, fmt.Sprintf("%s:%d", containerIP, internalPort))
+```text
+app-one.example.com {
+    reverse_proxy localhost:3000
 }
 ```
 
 </EnhancedCodeBlock>
 
-### What changed
+That worked for the first application. When a second application also requested port `3000`, ZenHost created another service with the same environment. Both processes tried to bind the same host address and port.
 
-By shifting the routing logic entirely to the reverse proxy and an internal bridge network, the applications could believe they owned whatever port they wanted. Tenant A could run on `3000`, Tenant B could run on `3000`, and the host machine didn't care.
+The first process owned the socket. The second hit the familiar Node error:
 
-It was a classic example of learning a distributed systems lesson the hard way. The abstraction I thought was making things simpler (just bind the port!) was actually tightly coupling the tenants to the underlying hardware in a way that couldn't scale past one user.
+<EnhancedCodeBlock lang="text" filename="application.log">
 
-Next up: trying to figure out how to do tenant isolation without accidentally building Kubernetes again.
+```text
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+```
+
+</EnhancedCodeBlock>
+
+ZenHost saw the result through systemd and reported that the application service had entered a failed state. In another failure path, the process could stay active without opening the expected socket, leaving ZenHost to time out while waiting for it to become ready.
+
+Those looked like application failures from the control plane. They were really symptoms of a bad hosting model.
+
+### Why another port allocator wasn't enough
+
+ZenHost already had a port allocator. If an application didn't specify a port, it could find a free one on the host and reserve it.
+
+The problem was what happened when an application did specify one. If a Node app requested `3000`, ZenHost trusted it. A second app could make the same request because, from the app developer's point of view, `3000` was a perfectly reasonable choice.
+
+I could have added a duplicate check and forced every application onto a different host port. That would have stopped this particular error, but it would have kept the wrong contract in place.
+
+Port `3000` matters inside the application. It shouldn't need to be unique across every tenant on the server.
+
+What I actually wanted was straightforward:
+
+<EnhancedCodeBlock lang="text" filename="routing-model.txt">
+
+```text
+app-one.example.com  -> app one on port 3000
+app-two.example.com  -> app two on port 3000
+```
+
+</EnhancedCodeBlock>
+
+The hostnames are different. The applications are different. Their framework's default port just happens to be the same.
+
+### Giving each app its own network
+
+The fix was to stop treating application ports as host ports.
+
+ZenHost now gives each application its own Linux network namespace. Each namespace has a private network endpoint, so two processes can both bind to `0.0.0.0:3000` without competing for the same socket.
+
+Conceptually, the route now looks like this:
+
+<EnhancedCodeBlock lang="text" filename="network-topology.txt">
+
+```text
+Internet
+   |
+ Caddy
+   |
+   +-- app-one.example.com -> private address A:3000
+   |
+   +-- app-two.example.com -> private address B:3000
+```
+
+</EnhancedCodeBlock>
+
+The applications still run as normal systemd-supervised processes. The important change is that each service joins its application's namespace before it starts.
+
+<EnhancedCodeBlock lang="ini" filename="application.service">
+
+```ini
+[Service]
+NetworkNamespacePath=/run/netns/<application-namespace>
+Environment=PORT=3000
+Environment=HOST=0.0.0.0
+Restart=on-failure
+```
+
+</EnhancedCodeBlock>
+
+Setting `HOST=0.0.0.0` matters here. If the application binds only to loopback inside its namespace, Caddy can't reach it through the private interface.
+
+The readiness check had to move too. Checking `127.0.0.1:3000` would only inspect the host namespace. ZenHost now checks the application's private address and local port, which tells it whether the actual upstream is ready to receive traffic.
+
+### Caddy stays at the front
+
+Caddy remains the public entry point. Applications don't get public host ports, and tenants don't need to coordinate port numbers with each other.
+
+Instead of sending every app to `localhost`, ZenHost gives Caddy an application-specific upstream:
+
+<EnhancedCodeBlock lang="text" filename="Caddyfile">
+
+```text
+app-one.example.com {
+    reverse_proxy <app-one-private-address>:3000
+}
+
+app-two.example.com {
+    reverse_proxy <app-two-private-address>:3000
+}
+```
+
+</EnhancedCodeBlock>
+
+From the developer's side, nothing unusual is required. The application can continue using the interface most Node hosting platforms already expect:
+
+<EnhancedCodeBlock lang="javascript" filename="server.js">
+
+```javascript
+app.listen(
+  process.env.PORT || 3000,
+  process.env.HOST || "0.0.0.0",
+);
+```
+
+</EnhancedCodeBlock>
+
+ZenHost takes responsibility for turning that private listen address into a route from the application's hostname.
+
+### What changed in my thinking
+
+At first, the bug looked like a missing duplicate-port check. It wasn't.
+
+A global port allocator can make collisions less common, but it also exposes the host's network layout to every application. A normal setting inside a Node or Python app becomes a scarce server-wide resource.
+
+After this change, the second application didn't need a different port. It needed a different network identity.
+
+That's the part I keep coming back to. When two tenants unexpectedly compete for something, better allocation isn't always the answer. Sometimes that thing should never have been shared in the first place.

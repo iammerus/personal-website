@@ -1,20 +1,158 @@
 ---
-title: "Reading a solar inverter over RS485 with an ESP32"
-description: "Using an ESP32 and MAX485 module to bring battery state, usage and alarms into Home Assistant."
-date: 2026-07-08
-tags: ["hardware", "home-assistant"]
+title: "Reading a MUST PV1900 solar inverter over RS485 with an ESP32"
+description: "Wiring an ESP32 into a MUST PV1900 over RS485, and what a warning buried in someone else's source code taught me about respecting undocumented hardware."
+date: 2025-12-14
+tags: ["hardware", "home-assistant", "self-hosting", "solar", "esphome"]
 ---
+import EnhancedCodeBlock from '../../components/EnhancedCodeBlock.astro';
 
-My solar inverter has a perfectly fine proprietary app, but it lives on a cloud server somewhere and updates once every 5 minutes. I wanted real-time data, locally, inside Home Assistant.
+We live off-grid, so electricity is something everyone in the house thinks about. On a clear day, we've got enough solar to run the washing machine or heat water without touching the batteries much. On a cloudy day, the same jobs eat a big chunk of what we've got stored.
 
-### The interface
+Our inverter, a MUST PV19-6048 EXP, already shows all of this on its front panel. Battery state, load, charging current, the lot. The problem is the data stays there unless someone walks over and looks.
 
-Most commercial inverters expose an RS485 port for Modbus RTU communication. It's an ancient industrial standard, but it's incredibly robust.
+I wanted it in Home Assistant, not as a copy of the same screen on a different device, but as something Home Assistant could actually act on. Tell us when it's a good time to do laundry. Warn us before the batteries get too low.
 
-Using a cheap MAX485 module wired to an ESP32, I can act as a Modbus master and poll the inverter's holding registers directly.
+That meant getting the inverter talking to something local, and keeping the whole chain off the internet where I could.
 
-### The setup
+### A port with no map
 
-Getting the timing right on ESPHome's Modbus component took some trial and error, as RS485 is half-duplex. If you try to read too fast, you'll collide with the inverter's response.
+The PV1900 has an RJ45 socket on the back carrying RS485 and CAN signals. It looks like an Ethernet port and it categorically isn't one. Plugging it into a switch is a bad idea.
 
-Once it was dialed in, the data flowed beautifully. Home Assistant now knows exactly when the battery hits 100%, and I can trigger automations to dump excess solar power into the water heater.
+The pinout is documented in MUST's manual:
+
+| RJ45 pin | Signal |
+|---|---|
+| 1 | RS485 B |
+| 2 | RS485 A |
+| 3 | Signal ground |
+| 4-5 | CAN high / low |
+| 6-8 | Not assigned |
+
+So the physical layer is documented. What isn't documented, not anywhere I could find, is a Modbus register map for the 4/6 kW PV1900 family. MUST will tell you which pin is which. They won't tell you which register holds the battery voltage.
+
+That's the actual wall I hit. Not the wiring, the wiring is trivial. I had a serial port with no public spec for what was on the other end of it.
+
+### Someone else had already done the hard part
+
+The register map I ended up using comes from the community [Must Inverter Home Assistant integration](https://github.com/mukaschultze/ha-must-inverter), which has specifically been tested against the PV19/PV1900 EXP 4 kW and 6 kW models. It's built entirely from reverse engineering, and it isn't endorsed by MUST.
+
+Before I wired anything up, I read through its source. Buried in there is a warning I wasn't expecting: reading certain large blocks of holding registers in one request can shut the inverter and charger down immediately. Getting it running again means disconnecting the grid, battery and PV before restarting the unit.
+
+That warning changed how I approached the whole project. I wasn't just polling a chatty piece of hardware. I was polling a device that could switch itself off if I got curious with the register ranges.
+
+So I set myself a rule before writing a line of ESPHome config: read only the addresses the community mapping already confirms, nothing else. No scanning to see what responds. No writing. If a register isn't in that known list, it doesn't exist as far as my ESP32 is concerned.
+
+### Hardware
+
+A generic MAX485 breakout runs on 5V logic, which isn't a clean match for the ESP32's 3.3V GPIO. I went with an isolated MAX3485-class transceiver instead, so there's a proper electrical boundary between the inverter and the rest of the house network.
+
+The ESP32 gets its own power supply. I'm not pulling power off the inverter's communications socket. Undocumented pins on a device that can apparently shut itself down aren't something I want to experiment with.
+
+Wiring uses just three of the eight RJ45 pins:
+
+| PV1900 | RS485 transceiver |
+|---|---|
+| Pin 1, RS485 B | B |
+| Pin 2, RS485 A | A |
+| Pin 3, GND | Reference ground |
+
+I left the CAN pins untouched. On the ESP32 side, the transceiver connects to a UART TX pin, a UART RX pin and a direction-control pin.
+
+### Half-duplex is the part that actually bites
+
+RS485 here is half-duplex. The ESP32 and the inverter share the same pair of wires to talk and listen.
+
+Every request follows the same sequence: enable the transceiver's driver, send the request, disable the driver and let go of the bus, wait for the inverter's response, then decode it. Get that timing wrong and you end up talking over the inverter's reply instead of hearing it.
+
+ESPHome handles driver enable and disable through a `flow_control_pin` on the UART. What it doesn't do automatically is find the right timing for your device. That's controlled through settings such as `send_wait_time` and `command_throttle`.
+
+Getting those dialled in took a few passes. I don't have the exact numbers I started with anymore, but those two settings were the ones that mattered. They were the difference between clean responses and the ESP32 trying to talk while the inverter was still replying.
+
+I landed on the same defaults used by the Must Inverter integration. That made sense, since it's the same device on the other end of the wire.
+
+<EnhancedCodeBlock lang="yaml" filename="esphome/pv1900.yaml">
+
+```yaml
+uart:
+  id: pv1900_uart
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  flow_control_pin: GPIO4
+  baud_rate: 19200
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+
+modbus:
+  id: pv1900_modbus
+  uart_id: pv1900_uart
+  send_wait_time: 500ms
+
+modbus_controller:
+  - id: pv1900
+    address: 0x04
+    modbus_id: pv1900_modbus
+    command_throttle: 100ms
+    update_interval: 15s
+```
+
+</EnhancedCodeBlock>
+
+Address 4, 19200 baud, 15-second polling. Nothing unusual once it's stable. It just takes a bit of patience to get there on your own hardware.
+
+### The registers I actually trust
+
+I started with a small set rather than pulling every register the community mapping exposes: battery state of charge, PV voltage, battery voltage, solar charging current and power, household load, and battery power.
+
+<EnhancedCodeBlock lang="yaml" filename="esphome/pv1900.yaml (sensors)">
+
+```yaml
+sensor:
+  - platform: modbus_controller
+    modbus_controller_id: pv1900
+    name: "PV1900 Battery State of Charge"
+    register_type: holding
+    address: 113
+    value_type: U_WORD
+    unit_of_measurement: "%"
+    device_class: battery
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: pv1900
+    name: "PV1900 Solar Charging Power"
+    register_type: holding
+    address: 15208
+    value_type: S_WORD
+    unit_of_measurement: "W"
+    device_class: power
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: pv1900
+    name: "PV1900 Household Load"
+    register_type: holding
+    address: 25215
+    value_type: S_WORD
+    unit_of_measurement: "W"
+    device_class: power
+    accuracy_decimals: 0
+```
+
+</EnhancedCodeBlock>
+
+One thing worth flagging if you've got a PV1900: the community mapping also lists a second PV input, with registers around `16205` for PV2 voltage and current. According to MUST's own spec sheet, the 4 kW and 6 kW models have a single MPPT. Dual MPPT only starts at the 6.2 kW model.
+
+I'm not adding a second set of PV sensors on a 6 kW unit just because a register exists. Firmware shared across the range can expose addresses that do nothing on the smaller models.
+
+### Where it landed
+
+Every reading I've pulled matches what's on the inverter's own display, which is the only real test that matters. Battery state of charge, load and solar power are all sitting in Home Assistant now, updating every 15 seconds instead of once every five minutes through MUST's cloud app. None of it leaves the local network to get there.
+
+It's already doing something with the data too. The first automation is simple: if solar charging is above 1 kW and the battery is above 70 percent before 3pm, Home Assistant tells us it's a good time to run the washing machine.
+
+There's nothing clever about the rule itself. What matters is that the inverter now behaves like part of the house instead of a screen you have to walk over and read.
+
+There's more to build on top of this: low-battery warnings and flagging solar output that's lower than it should be for the weather. I'll get into that once there's more than one automation worth writing about.
+
+For now, the win is smaller and more concrete: the data got out of the box on the wall, and it did it without an internet connection in the middle.
