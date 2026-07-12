@@ -12,14 +12,17 @@ interface Props {
   structuredData?: object;
   /** Homepage only: the spine's power net terminates at a gnd symbol in the footer */
   grounded?: boolean;
+  /** Article pages: masthead sticks so the reading-progress trace stays visible */
+  stickyHeader?: boolean;
 }
 
 const {
   title = "Melvin Mupondori",
   description = "Melvin Mupondori is a software engineer in Harare who builds developer platforms, hosting tools and hardware experiments.",
-  image = "/og-image.png",
+  image,
   structuredData,
-  grounded = false
+  grounded = false,
+  stickyHeader = false
 } = Astro.props;
 
 ---
@@ -37,24 +40,24 @@ const {
     <!-- Website id is public by design; data-domains keeps dev/preview hits out -->
     <script async src="https://analytics.umami.is/script.js" data-website-id="99b4c454-a100-4659-aea8-9b7604b22128" data-domains="mups.co.zw"></script>
     
-    <!-- Theme script runs early to prevent FOUC -->
+    <!-- Theme script runs early to prevent FOUC. astro:after-swap re-applies it
+         before the new page paints — the ClientRouter replaces <html>, which
+         would otherwise reset data-theme to light on every navigation. -->
     <script is:inline>
-      const theme = (() => {
-        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-          return localStorage.getItem('theme');
+      function applyTheme() {
+        const theme =
+          localStorage.getItem('theme') ??
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
         }
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          return 'dark';
-        }
-        return 'light';
-      })();
-      
-      if (theme === 'light') {
-        document.documentElement.removeAttribute('data-theme');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
       }
-      window.localStorage.setItem('theme', theme);
+
+      applyTheme();
+      document.addEventListener('astro:after-swap', applyTheme);
     </script>
     
     <ClientRouter />
@@ -63,7 +66,7 @@ const {
     <!-- You found the service hatch. Nothing is on fire. -->
     <a href="#main-content" class="skip-link">Skip to content</a>
     <div id="stars-container"></div>
-    <Masthead />
+    <Masthead sticky={stickyHeader} />
     <main id="main-content">
       <slot />
     </main>

@@ -8,16 +8,18 @@ interface Props {
   structuredData?: any;
 }
 
-const { 
-  title, 
-  description, 
-  image = new URL('/og-image.png', Astro.site).toString(),
+const {
+  title,
+  description,
+  image = '/og-default.png',
   type = 'website',
   publishDate,
   structuredData
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// OG scrapers require absolute URLs; new URL() passes absolute inputs through untouched
+const ogImage = new URL(image, Astro.site).toString();
 ---
 
 <!-- Global Metadata -->
@@ -40,7 +42,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={image} />
+<meta property="og:image" content={ogImage} />
 {publishDate && <meta property="article:published_time" content={publishDate.toISOString()} />}
 
 <!-- Twitter -->
@@ -48,7 +50,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 <meta property="twitter:url" content={canonicalURL} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={image} />
+<meta property="twitter:image" content={ogImage} />
 <meta property="twitter:creator" content="@wezhirawevhu" />
 
 <!-- RSS -->

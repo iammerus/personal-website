@@ -76,11 +76,13 @@ const structuredData = {
   description={post.data.description}
   image={ogImage.toString()}
   structuredData={structuredData}
+  stickyHeader
 >
   <article class="article-container container" id="article-content">
     <header class="article-header">
       <div class="header-meta font-utility text-muted">
         <span class="article-num">{articleNumber}</span>
+        <span class="read-time">{getReadingTime(post.body || '')} read</span>
       </div>
       
       <h1 class="font-display">{post.data.title}</h1>
@@ -101,11 +103,6 @@ const structuredData = {
             <span>{post.data.updated.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
           </div>
         )}
-        
-        <div class="detail-group">
-          <span class="detail-label">Reading time</span>
-          <span>{getReadingTime(post.body || '')}</span>
-        </div>
         
         {post.data.tags && post.data.tags.length > 0 && (
           <div class="detail-group">
@@ -167,11 +164,18 @@ const structuredData = {
 
   .header-meta {
     margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
   }
 
   .article-num {
     padding: 0.125rem 0.5rem;
     border: 1px solid var(--border-color);
+  }
+
+  .read-time {
+    font-size: 0.875rem;
   }
 
   .article-header h1 {

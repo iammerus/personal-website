@@ -1,4 +1,10 @@
 ---
+interface Props {
+  /** Article pages: stick to the top so the reading-progress trace stays visible */
+  sticky?: boolean;
+}
+
+const { sticky = false } = Astro.props;
 const pathname = Astro.url.pathname;
 
 const navItems = [
@@ -13,7 +19,7 @@ function isActive(path: string) {
 }
 ---
 
-<header class="masthead">
+<header class:list={['masthead', { sticky }]}>
   <div class="masthead-container container">
     <div class="masthead-left">
       <a href="/" class="masthead-identity">
@@ -52,13 +58,26 @@ function isActive(path: string) {
     position: relative;
     view-transition-name: masthead;
   }
-  
+
+  .masthead.sticky {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-color);
+  }
+
   .masthead-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
+  }
+
+  /* Nav clusters with the theme toggle on the right instead of floating mid-bar */
+  .masthead-nav {
+    margin-left: auto;
+    margin-right: 2.5rem;
   }
   
   .masthead-left {
@@ -156,6 +175,8 @@ function isActive(path: string) {
       width: 100%;
       border-top: 1px solid var(--border-color);
       padding-top: 1rem;
+      margin-left: 0;
+      margin-right: 0;
     }
 
     .masthead-right {
