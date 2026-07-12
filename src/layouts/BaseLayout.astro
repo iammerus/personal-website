@@ -134,4 +134,13 @@ const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
     padding-top: 4rem;
     padding-bottom: 4rem;
   }
+
+  /* Vertical rhythm compresses with the viewport — desktop air reads as
+     emptiness on a phone */
+  @media (max-width: 768px) {
+    main {
+      padding-top: 1.5rem;
+      padding-bottom: 2.5rem;
+    }
+  }
 </style>

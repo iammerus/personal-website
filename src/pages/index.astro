@@ -235,18 +235,35 @@ const structuredData = {
       grid-template-columns: 1fr;
       gap: 2rem;
     }
-    
+
     .article-row {
       grid-template-columns: 1fr;
       gap: 0.5rem;
       padding: 1.5rem 0;
     }
-    
+
     .article-num { display: none; }
-    
+
     .article-topic {
       grid-row: 3;
       grid-column: 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    section {
+      padding: 2rem 0;
+    }
+
+    .intro-section {
+      padding-top: 1rem;
+      padding-bottom: 2.5rem;
+    }
+
+    .now-section .route-junction,
+    .proud-section .route-junction,
+    .writing-section .route-junction {
+      top: 2rem;
     }
   }
 
