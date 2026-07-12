@@ -8,6 +8,11 @@ export default defineConfig({
   compressHTML: true,
   site: 'https://mups.co.zw',
   integrations: [mdx(), sitemap()],
+  markdown: {
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+    },
+  },
   build: {
     assets: '_astro'
   },

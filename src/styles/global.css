@@ -170,6 +170,13 @@ hr {
   border-top: 1px solid var(--border-color);
 }
 
+/* Shiki dual themes: swap token colours when the bench light is off */
+:root[data-theme='dark'] .astro-code,
+:root[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
 /* Night theme stars container */
 #stars-container {
   position: fixed;

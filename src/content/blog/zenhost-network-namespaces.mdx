@@ -17,8 +17,10 @@ Everything worked perfectly for the first tenant. They deployed a Node.js app on
 
 Then the second tenant arrived, and they also wanted port `3000`.
 
-<EnhancedCodeBlock lang="bash" filename="docker-compose.yml">
-{`version: '3'
+<EnhancedCodeBlock lang="yaml" filename="docker-compose.yml">
+
+```yaml
+version: '3'
 services:
   app-tenant-a:
     image: my-node-app
@@ -29,7 +31,8 @@ services:
     image: my-other-node-app
     ports:
       - "3000:3000" # Error: port already allocated
-`}
+```
+
 </EnhancedCodeBlock>
 
 I had accidentally built a system where port numbers were a global, scarce resource. I was essentially recreating the exact problem that caused shared hosting to become a nightmare in the late 90s, just with containers.
@@ -41,7 +44,9 @@ The fix, of course, was to embrace Linux network namespaces fully, rather than f
 Instead of letting containers dictate the host port, ZenHost needed to dynamically allocate an ephemeral port on the host side, or better yet, route traffic through an internal bridge network directly to the container's IP and private port.
 
 <EnhancedCodeBlock lang="go" filename="scheduler.go">
-{`// The wrong way: trusting the requested port blindly
+
+```go
+// The wrong way: trusting the requested port blindly
 func allocatePort(requestedPort int) error {
     if isPortInUse(requestedPort) {
         return fmt.Errorf("port %d is already in use by another tenant", requestedPort)
@@ -56,7 +61,8 @@ func setupTenantRouting(containerIP string, internalPort int) {
     // The host ports are never exposed or conflicted.
     proxy.RegisterRoute(tenantDomain, fmt.Sprintf("%s:%d", containerIP, internalPort))
 }
-`}
+```
+
 </EnhancedCodeBlock>
 
 ### What changed
