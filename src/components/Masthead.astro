@@ -16,19 +16,10 @@ function isActive(path: string) {
 <header class="masthead">
   <div class="masthead-container container">
     <div class="masthead-left">
-      <a href="/" class="brand-link" aria-label="Home">
-        <svg class="circuit-mark" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="4" cy="12" r="2" />
-          <line x1="6" y1="12" x2="12" y2="12" />
-          <circle cx="14" cy="12" r="2" />
-          <line x1="16" y1="12" x2="20" y2="8" />
-          <circle cx="20" cy="6" r="2" />
-        </svg>
-      </a>
-      <div class="masthead-identity">
+      <a href="/" class="masthead-identity">
         <div class="name font-display">Melvin Mupondori</div>
         <div class="title font-utility text-muted">Senior software engineer · platform and product</div>
-      </div>
+      </a>
     </div>
     
     <nav class="masthead-nav">
@@ -73,25 +64,26 @@ function isActive(path: string) {
   .masthead-left {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
   }
-  
-  .brand-link {
+
+  .masthead-identity {
     color: var(--text-color);
-    display: flex;
-    align-items: center;
-    view-transition-name: circuit-mark;
   }
-  
-  .brand-link:hover {
+
+  .masthead-identity:hover {
+    text-decoration: none;
+  }
+
+  .masthead-identity:hover .name {
     color: var(--accent-color);
   }
-  
+
   .masthead-identity .name {
     font-size: 1rem;
     line-height: 1.2;
+    transition: color 150ms ease;
   }
-  
+
   .masthead-identity .title {
     font-size: 0.8rem;
     color: var(--text-muted);

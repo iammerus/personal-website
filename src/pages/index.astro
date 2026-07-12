@@ -59,33 +59,6 @@ const structuredData = {
           <p>
             Listening to a BMW E87's CAN bus with an ESP32 and MCP2551, and pulling RS485 data from my solar inverter into Home Assistant.
           </p>
-          <!-- The actual signal chain the paragraph describes -->
-          <svg
-            class="signal-chain"
-            viewBox="0 0 360 96"
-            fill="none"
-            role="img"
-            aria-label="Signal chain: BMW E87 CAN bus through an MCP2551 transceiver to an ESP32, then on to Home Assistant"
-          >
-            <g class="chain-routes">
-              <line x1="50" y1="48" x2="78" y2="48" />
-              <line x1="156" y1="48" x2="184" y2="48" />
-              <line x1="242" y1="48" x2="282" y2="48" stroke-dasharray="4 4" />
-            </g>
-            <g class="chain-boxes">
-              <rect x="2" y="30" width="48" height="36" />
-              <rect x="78" y="30" width="78" height="36" />
-              <rect x="184" y="30" width="58" height="36" />
-            </g>
-            <circle class="chain-end" cx="288" cy="48" r="5" />
-            <g class="chain-labels">
-              <text x="26" y="52" text-anchor="middle">e87</text>
-              <text x="117" y="52" text-anchor="middle">mcp2551</text>
-              <text x="213" y="52" text-anchor="middle">esp32</text>
-              <text x="64" y="24" text-anchor="middle" class="tiny-label">can</text>
-              <text x="288" y="76" text-anchor="middle">home assistant</text>
-            </g>
-          </svg>
         </div>
       </div>
       <div class="trace-node route-junction"></div>
@@ -173,21 +146,17 @@ const structuredData = {
 
   .route-junction {
     left: -1rem; /* -3rem from container + 2rem line pos = -1rem relative */
+    top: 2rem; /* aligns with each section's label line */
   }
-
-  .intro-section .route-junction { top: 2rem; }
-  .now-section .route-junction { top: 3rem; }
-  .proud-section .route-junction { top: 3rem; }
-  .writing-section .route-junction { top: 3rem; }
 
   section {
     position: relative;
-    padding: 3rem 0;
+    padding: 2rem 0;
   }
 
   .intro-section {
     padding-top: 2rem;
-    padding-bottom: 3rem;
+    padding-bottom: 2.5rem;
   }
 
   .thesis-line {
@@ -218,38 +187,6 @@ const structuredData = {
     grid-template-columns: 3fr 2fr;
     gap: 4rem;
     max-width: 900px;
-  }
-
-  .signal-chain {
-    margin-top: 1.5rem;
-    width: 100%;
-    max-width: 360px;
-    height: auto;
-  }
-
-  .signal-chain .chain-routes line {
-    stroke: var(--border-color);
-    stroke-width: 1.5;
-  }
-
-  .signal-chain .chain-boxes rect {
-    stroke: var(--border-color);
-    stroke-width: 1.5;
-    fill: var(--c-bone);
-  }
-
-  .signal-chain .chain-end {
-    fill: var(--accent-color);
-  }
-
-  .signal-chain .chain-labels text {
-    fill: var(--text-muted);
-    font-family: var(--font-utility);
-    font-size: 11px;
-  }
-
-  .signal-chain .tiny-label {
-    font-size: 9px;
   }
 
   .project-entry {
@@ -357,23 +294,10 @@ const structuredData = {
   }
 
   @media (max-width: 768px) {
-    section {
-      padding: 2rem 0;
-    }
-
     .intro-section {
       padding-top: 1rem;
-      padding-bottom: 2.5rem;
     }
 
-    .now-section .route-junction,
-    .proud-section .route-junction,
-    .writing-section .route-junction {
-      top: 2rem;
-    }
-  }
-
-  @media (max-width: 768px) {
     /* mobile main padding-bottom is 2.5rem */
     .main-route {
       bottom: -2.5rem;
