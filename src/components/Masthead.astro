@@ -146,9 +146,49 @@ function isActive(path: string) {
     justify-content: center;
     transition: color 150ms ease;
   }
-  
+
   .theme-toggle:hover {
     color: var(--text-color);
+  }
+
+  .theme-toggle .moon-icon {
+    transition: fill 200ms ease, filter 200ms ease;
+  }
+
+  /* Bench light on: filled icon in accent with a soft glow */
+  .theme-toggle.is-on,
+  .theme-toggle.is-on:hover {
+    color: var(--accent-color);
+  }
+
+  .theme-toggle.is-on .moon-icon {
+    fill: currentColor;
+    filter: drop-shadow(0 0 4px var(--accent-color));
+  }
+
+  .theme-toggle.just-switched .moon-icon {
+    animation: bench-light-flick 400ms ease-out;
+  }
+
+  @keyframes bench-light-flick {
+    0% {
+      transform: scale(0.6) rotate(-25deg);
+      opacity: 0.4;
+    }
+    55% {
+      transform: scale(1.15) rotate(6deg);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle.just-switched .moon-icon {
+      animation: none;
+    }
   }
   
   .progress-trace {
@@ -189,20 +229,17 @@ function isActive(path: string) {
 
 <script>
   import { track } from '../lib/analytics';
+  import { getTheme, setBenchLight, syncThemeControls } from '../lib/theme';
 
   function setupThemeToggle() {
     const btn = document.getElementById('theme-toggle-header');
     if (!btn) return;
 
+    syncThemeControls();
+
     btn.addEventListener('click', () => {
-      const isDark = document.documentElement.hasAttribute('data-theme');
-      if (isDark) {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-      }
+      // Bench light on = light mode, off = dark mode
+      setBenchLight(getTheme() === 'dark', btn);
       track('theme_changed');
     });
   }

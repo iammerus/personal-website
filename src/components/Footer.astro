@@ -56,6 +56,7 @@ const currentYear = new Date().getFullYear();
         bench light: 
         <button id="theme-toggle-footer-on" class="theme-btn">on</button> / 
         <button id="theme-toggle-footer-off" class="theme-btn">off</button>
+        <span class="mode-label text-muted">(<span id="theme-mode-label">light mode</span>)</span>
       </div>
     </div>
   </div>
@@ -174,6 +175,29 @@ const currentYear = new Date().getFullYear();
   .theme-btn.active {
     color: var(--accent-color);
   }
+
+  .theme-btn.just-switched {
+    animation: bench-switch-flick 400ms ease-out;
+  }
+
+  @keyframes bench-switch-flick {
+    0% {
+      opacity: 0.3;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-btn.just-switched {
+      animation: none;
+    }
+  }
+
+  .mode-label {
+    margin-left: 0.5rem;
+  }
   
   @media (max-width: 768px) {
     .footer-row {
@@ -191,57 +215,23 @@ const currentYear = new Date().getFullYear();
 
 <script>
   import { track } from '../lib/analytics';
-
-  function updateThemeButtons() {
-    const isDark = document.documentElement.hasAttribute('data-theme');
-    const onBtn = document.getElementById('theme-toggle-footer-on');
-    const offBtn = document.getElementById('theme-toggle-footer-off');
-    
-    if (onBtn && offBtn) {
-      if (isDark) {
-        offBtn.classList.add('active');
-        onBtn.classList.remove('active');
-      } else {
-        onBtn.classList.add('active');
-        offBtn.classList.remove('active');
-      }
-    }
-  }
+  import { setBenchLight, syncThemeControls } from '../lib/theme';
 
   function setupFooterTheme() {
-    updateThemeButtons();
-    
+    syncThemeControls();
+
     const onBtn = document.getElementById('theme-toggle-footer-on');
     const offBtn = document.getElementById('theme-toggle-footer-off');
-    
-    if (onBtn) {
-      onBtn.addEventListener('click', () => {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
-        updateThemeButtons();
-        track('theme_changed');
-      });
-    }
-    
-    if (offBtn) {
-      offBtn.addEventListener('click', () => {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-        updateThemeButtons();
-        track('theme_changed');
-      });
-    }
-    
-    // Listen for mutations on html to update active states when header toggle is used
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'data-theme') {
-          updateThemeButtons();
-        }
-      });
+
+    onBtn?.addEventListener('click', () => {
+      setBenchLight(true, onBtn);
+      track('theme_changed');
     });
-    
-    observer.observe(document.documentElement, { attributes: true });
+
+    offBtn?.addEventListener('click', () => {
+      setBenchLight(false, offBtn);
+      track('theme_changed');
+    });
   }
 
   document.addEventListener('astro:page-load', setupFooterTheme);
