@@ -117,10 +117,9 @@ const {
     </script>
 
     <script>
-      // Cloudflare's Email Address Obfuscation decodes on DOMContentLoaded only,
-      // which never re-fires after a ClientRouter swap — so decode ourselves on
-      // every page-load. Same XOR scheme CF's own email-decode.min.js uses.
-      // No-op locally and on hosts without the obfuscation.
+      // EmailLink bakes the CF-style XOR obfuscation into the HTML at build
+      // time, so decode here on initial load and again after every
+      // ClientRouter swap. No-op on pages without obfuscated markup.
       function cfDecode(encoded: string): string {
         const key = parseInt(encoded.slice(0, 2), 16);
         let out = '';
@@ -144,6 +143,7 @@ const {
         });
       }
 
+      decodeObfuscatedEmails();
       document.addEventListener('astro:page-load', decodeObfuscatedEmails);
     </script>
 
