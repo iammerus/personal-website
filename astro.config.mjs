@@ -14,7 +14,10 @@ export default defineConfig({
     },
   },
   build: {
-    assets: '_astro'
+    assets: '_astro',
+    // ~29 KiB stylesheet inlined into each page: kills the render-blocking CSS
+    // request and lets the browser discover @font-face URLs immediately
+    inlineStylesheets: 'always'
   },
   vite: {
     ssr: {

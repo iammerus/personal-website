@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectSchematic from '../components/ProjectSchematic.astro';
+import EmailLink from '../components/EmailLink.astro';
 import { getCollection } from 'astro:content';
 import { person, SITE_URL } from '../lib/schema';
 
@@ -38,7 +39,7 @@ const structuredData = {
         I build software, tinker with hardware, and spend an unreasonable amount of time figuring out how things work.
       </h1>
       <p class="intro-contact font-utility">
-        <a href="mailto:hello@mups.co.zw">hello@mups.co.zw</a>
+        <EmailLink />
         <span class="contact-sep text-muted">·</span>
         <a href="https://github.com/iammerus" target="_blank" rel="noopener noreferrer">github.com/iammerus</a>
       </p>

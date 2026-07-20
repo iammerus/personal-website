@@ -1,0 +1,28 @@
+---
+/**
+ * Build-time email obfuscation — same XOR scheme Cloudflare's Email Address
+ * Obfuscation uses, but baked into the HTML at build time. This lets CF's
+ * Scrape Shield obfuscation (and its render-blocking email-decode.min.js)
+ * stay switched off. The decoder in BaseLayout handles this exact markup on
+ * every astro:page-load.
+ */
+interface Props {
+  class?: string;
+  /** Footer variant: trailing ↗ lives outside the decoded span so decoding
+      doesn't wipe it */
+  showArrow?: boolean;
+}
+
+const { class: className, showArrow = false } = Astro.props;
+
+const email = 'hello@mups.co.zw';
+// Arbitrary XOR key; the decoder reads it from the first byte of the payload
+const key = 0x5a;
+const hex =
+  key.toString(16).padStart(2, '0') +
+  [...email].map((c) => (c.charCodeAt(0) ^ key).toString(16).padStart(2, '0')).join('');
+---
+
+<a href={`/cdn-cgi/l/email-protection#${hex}`} class={className}
+  ><span data-cfemail={hex}>[email&#160;protected]</span>{showArrow && ' ↗'}</a
+>
