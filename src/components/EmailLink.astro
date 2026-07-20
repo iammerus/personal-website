@@ -1,7 +1,7 @@
 ---
 /**
- * Build-time email obfuscation — same XOR scheme Cloudflare's Email Address
- * Obfuscation uses, but baked into the HTML at build time. This lets CF's
+ * Build-time email obfuscation using the same XOR scheme Cloudflare's Email
+ * Address Obfuscation uses, but baked into the HTML at build time. This lets CF's
  * Scrape Shield obfuscation (and its render-blocking email-decode.min.js)
  * stay switched off. The decoder in BaseLayout handles this exact markup on
  * every astro:page-load.
