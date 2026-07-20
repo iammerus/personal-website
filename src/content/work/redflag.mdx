@@ -1,0 +1,30 @@
+---
+title: "Redflag"
+description: "A Rust CLI for finding secrets in source code and Git history before they become a bigger problem."
+date: 2025-01-26
+role: "Creator"
+stack: ["Rust", "libgit2", "TOML"]
+status: "Open source"
+started: "2025"
+repository: "https://github.com/BuggyCorp/redflag"
+---
+
+## Why I built it
+
+Someone at work committed secrets to a repository, then removed them in the next commit. The files looked clean again, but the secrets were still in Git history.
+
+I built Redflag to catch that in two places: in a pre-commit hook before the mistake lands, and in a full history scan when it already has.
+
+## How it works
+
+Redflag is a Rust command-line tool. It checks source files with regular expressions and Shannon entropy, and uses libgit2 to walk commits and branches. A finding from Git history includes the commit hash, author, and date so you can find where the secret came from.
+
+The scanner can run locally, in CI, or as a periodic job. Each repository can define its own patterns, entropy threshold, and exclusions in a TOML file.
+
+## The part that took the work
+
+Reading Git history was the technically interesting problem. False positives were the annoying one.
+
+A scanner that misses secrets isn't useful. Neither is one that complains about every hash, fixture, and generated file in the repository. Most of the work went into finding a usable point between those two.
+
+Redflag started as a reason to use Rust on a problem I'd actually seen. Walking Git history and getting the false positives under control became the parts that taught me the most.
