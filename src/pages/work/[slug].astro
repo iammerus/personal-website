@@ -13,6 +13,7 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const { Content } = await render(project);
+const projectLink = project.data.liveUrl ?? project.data.repository;
 
 const allPosts = await getCollection('blog');
 const relatedPosts = allPosts
@@ -73,8 +74,8 @@ const structuredData = {
         <div class="stamp-item">
           <span class="stamp-label">Link</span>
           <span class="stamp-value">
-            {project.data.liveUrl ? (
-              <a href={project.data.liveUrl}>{project.data.liveUrl}</a>
+            {projectLink ? (
+              <a href={projectLink}>{projectLink}</a>
             ) : (
               'Not yet public'
             )}

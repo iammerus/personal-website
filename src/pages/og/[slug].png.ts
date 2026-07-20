@@ -1,4 +1,5 @@
 import { getCollection } from 'astro:content';
+import { getArticleNumber, sortArticlesNewestFirst } from '../../lib/articles';
 import satori from 'satori';
 import { html } from 'satori-html';
 import { Resvg } from '@resvg/resvg-js';
@@ -6,14 +7,15 @@ import fs from 'fs/promises';
 import path from 'path';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  // Mirror src/pages/blog/index.astro: sort date-descending, number from the bottom up
-  const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-  return sortedPosts.map((post, index) => ({
+  const posts = await getCollection('blog', ({ data }) => {
+    return import.meta.env.PROD ? !data.draft : true;
+  });
+  const sortedPosts = sortArticlesNewestFirst(posts);
+  return sortedPosts.map((post) => ({
     params: { slug: post.id },
     props: {
       post,
-      articleNumber: `B-${(sortedPosts.length - index).toString().padStart(3, '0')}`,
+      articleNumber: getArticleNumber(posts, post.id),
     },
   }));
 }

@@ -1,17 +1,19 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
+import { getArticleNumber, sortArticlesNewestFirst } from '../../lib/articles';
 import { person, breadcrumbs, SITE_URL } from '../../lib/schema';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = await getCollection('blog', ({ data }) => {
+    return import.meta.env.PROD ? !data.draft : true;
+  });
   
   // Sort posts by date for finding related articles
-  const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  const sortedPosts = sortArticlesNewestFirst(posts);
   
   return sortedPosts.map((post, index) => {
-    // Generate article number
-    const articleNumber = `B-${(sortedPosts.length - index).toString().padStart(3, '0')}`;
+    const articleNumber = getArticleNumber(posts, post.id);
     
     // Prev/next within the same series when the post has one; otherwise date neighbours
     let prev = index > 0 ? sortedPosts[index - 1] : null;

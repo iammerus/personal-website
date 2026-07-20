@@ -1,13 +1,14 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { getArticleNumber, sortArticlesNewestFirst } from '../../lib/articles';
 import { person, SITE_URL } from '../../lib/schema';
 
 const allPosts = await getCollection('blog', ({ data }) => {
   return import.meta.env.PROD ? !data.draft : true;
 });
 
-const sortedPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const sortedPosts = sortArticlesNewestFirst(allPosts);
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -44,8 +45,8 @@ function getReadingTime(body: string) {
     </header>
 
     <div class="article-archive">
-      {sortedPosts.map((post, index) => {
-        const articleNumber = `B-${(sortedPosts.length - index).toString().padStart(3, '0')}`;
+      {sortedPosts.map((post) => {
+        const articleNumber = getArticleNumber(allPosts, post.id);
         return (
           <article class="trace-entry">
             <div class="trace-node entry-junction"></div>

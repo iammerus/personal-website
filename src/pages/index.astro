@@ -3,14 +3,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectSchematic from '../components/ProjectSchematic.astro';
 import EmailLink from '../components/EmailLink.astro';
 import { getCollection } from 'astro:content';
+import { getArticleNumber, sortArticlesNewestFirst } from '../lib/articles';
 import { person, SITE_URL } from '../lib/schema';
 
 const allPosts = await getCollection('blog', ({ data }) => {
   return import.meta.env.PROD ? !data.draft : true;
 });
 
-// Sort by date descending
-const recentPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3);
+const recentPosts = sortArticlesNewestFirst(allPosts).slice(0, 3);
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -92,9 +92,9 @@ const structuredData = {
     <section class="writing-section">
       <h2 class="font-utility text-muted section-label">Recent writing</h2>
       <div class="article-list">
-        {recentPosts.length > 0 ? recentPosts.map((post, index) => (
+        {recentPosts.length > 0 ? recentPosts.map((post) => (
           <a href={`/blog/${post.id}`} class="article-row">
-            <div class="article-num font-utility text-muted">B-{(recentPosts.length - index).toString().padStart(3, '0')}</div>
+            <div class="article-num font-utility text-muted">{getArticleNumber(allPosts, post.id)}</div>
             <div class="article-title">{post.data.title}</div>
             <div class="article-date font-utility text-muted">
               {post.data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
